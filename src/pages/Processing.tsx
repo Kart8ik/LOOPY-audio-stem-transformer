@@ -21,8 +21,8 @@ const Processing = () => {
 
   return (
     <div>
-      <Card>
-        <CardContent className="bg-secondary text-secondary-foreground items-center justify-center">
+      <Card className="w-full h-full bg-secondary text-secondary-foreground items-center justify-center">
+        <CardContent>
           <p>{processingText[currentText]}</p>
         </CardContent>
       </Card>

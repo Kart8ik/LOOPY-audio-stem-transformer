@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Home from '@/pages/Home'
 import HowToUse from '@/pages/HowToUse'
 import Navbar from './components/navbar'
+import Loopy from './pages/Loopy'
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/how-to-use" element={<HowToUse />} />
+          <Route path="/loopy" element={<Loopy />} />
         </Routes>
       </BrowserRouter>
     </div>
