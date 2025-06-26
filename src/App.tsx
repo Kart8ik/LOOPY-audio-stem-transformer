@@ -13,7 +13,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/how-to-use" element={<HowToUse />} />
-          <Route path="/loopy" element={<Loopy />} />
+          <Route path="/loop-lab" element={<Loopy />} />
         </Routes>
       </BrowserRouter>
     </div>

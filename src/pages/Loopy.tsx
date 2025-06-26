@@ -1,12 +1,20 @@
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardTitle } from "@/components/ui/card"
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card"
+import { useState, useRef, useEffect } from 'react'
 import WaveSurfer from 'wavesurfer.js'
 import RegionsPlugin, { type Region } from 'wavesurfer.js/dist/plugins/regions.js'
-import { UploadCloud } from "lucide-react"
+import TimelinePlugin from 'wavesurfer.js/dist/plugins/timeline.js'
+import { UploadCloud, Play, Pause } from "lucide-react"
 import WavesurferPlayer from '@wavesurfer/react'
 import Processing from "./Processing"
 import { Input } from "@/components/ui/input"
+import loopy from "@/assets/loopy.png"
+
+const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60)
+    const secs = Math.floor(seconds % 60)
+    return `${minutes}:${secs.toString().padStart(2, '0')}`
+}
 
 const Loopy = () => {
     const [song, setSong] = useState<string | null>(null)
@@ -18,12 +26,15 @@ const Loopy = () => {
     const [isPlaying, setIsPlaying] = useState(false)
     const [isDragging, setIsDragging] = useState(false)
     const inputRef = useRef<HTMLInputElement>(null)
+    const timelineRef = useRef<HTMLDivElement>(null);
 
     const [loopDuration, setLoopDuration] = useState<number>(30)
     const [loopedSong, setLoopedSong] = useState<string | null>(null)
     const [isLooping, setIsLooping] = useState(false)
     const regionsRef = useRef<RegionsPlugin|null>(null)
     const [activeRegion, setActiveRegion] = useState<Region|null>(null)
+    const [currentTime, setCurrentTime] = useState(0)
+    const [regionInfo, setRegionInfo] = useState<{ start: string; end: string } | null>(null)
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0]
@@ -95,16 +106,6 @@ const Loopy = () => {
             setIsLooping(false)
         }
     }
-  
-    const handleDownload = () => {
-      if (!processedSong) return
-      const a = document.createElement('a')
-      a.href = processedSong
-      a.download = 'no_vocals.mp3'
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-    }
 
     const handleLoopedDownload = () => {
         if (!loopedSong) return
@@ -119,7 +120,28 @@ const Loopy = () => {
     const onReady = (ws: WaveSurfer) => {
         setWavesurfer(ws)
         setIsPlaying(false)
+
+        ws.on('audioprocess', (time) => {
+            setCurrentTime(time)
+        })
+
+        ws.on('seeking', (time) => {
+            setCurrentTime(time)
+        })
+
         if (processedSong && !loopedSong) {
+            if (timelineRef.current) {
+                ws.registerPlugin(
+                    TimelinePlugin.create({
+                        container: timelineRef.current,
+                        primaryColor: '#f85303',
+                        secondaryColor: '#fad484',
+                        primaryFontColor: '#f85303',
+                        secondaryFontColor: '#fad484',
+                    } as any)
+                )
+            }
+
             regionsRef.current = ws.registerPlugin(RegionsPlugin.create())
             
             regionsRef.current.on('region-out', (region) => {
@@ -140,19 +162,24 @@ const Loopy = () => {
                 }
                 (region as any).loop = true
                 setActiveRegion(region)
+                setRegionInfo({ start: formatTime(region.start), end: formatTime(region.end) })
             })
 
             regionsRef.current.on('region-updated', (region) => {
                 setActiveRegion(region)
+                setRegionInfo({ start: formatTime(region.start), end: formatTime(region.end) })
             })
 
             // Add a default region
-            regionsRef.current.addRegion({
+            const defaultRegion = regionsRef.current.addRegion({
                 start: 0,
                 end: 15,
                 color: 'rgba(248, 83, 3, 0.2)',
-                loop: true,
-            } as any)
+            });
+            
+            (defaultRegion as any).loop = true
+            setActiveRegion(defaultRegion)
+            setRegionInfo({ start: formatTime(defaultRegion.start), end: formatTime(defaultRegion.end) })
         }
     }
   
@@ -213,14 +240,24 @@ const Loopy = () => {
         </div>
       )}
       {!isProcessing && !isLooping && !processedSong && (
+        <>
+        <div className="flex flex-row w-full h-[33vh] items-stretch justify-center gap-4 mb-4">
+        <Card className="flex-2 flex-col justify-center bg-secondary text-secondary-foreground rounded-xl w-1/2 p-12">
+          <CardTitle className="text-secondary-foreground text-8xl font-bold ">UPLOAD</CardTitle>
+          <CardDescription className="text-secondary-foreground text-lg self-end">Add your favourite songs in the loop lab to process them</CardDescription>
+        </Card>
+        <div className="flex-1 w-full rounded-xl overflow-hidden">
+          <img src={loopy} alt="loopy" className="h-full w-full  object-cover" />
+        </div>
+        </div>
+        <div className="flex flex-row w-full h-full">
         <Card
-          className="flex flex-col bg-secondary text-secondary-foreground rounded-xl w-full h-full items-center justify-center"
+          className="flex-1 flex-col bg-secondary text-secondary-foreground rounded-xl w-full h-full items-center justify-center"
         >
-          <CardTitle className="text-secondary-foreground text-4xl font-bold self-center">UPLOAD YOUR SONG</CardTitle>
           <CardContent className="w-full h-full">
             <div
-              className={`flex flex-col w-full h-52 border-2 border-solid rounded-xl items-center justify-center text-center cursor-pointer transition-colors ${
-                isDragging ? 'border-primary bg-primary/10' : 'border-secondary-foreground hover:border-secondary-foreground'
+              className={`flex flex-col bg-background text-primary w-full h-full border-2 border-solid rounded-full items-center justify-center text-center cursor-pointer transition-colors ${
+                isDragging ? 'border-primary' : 'border-secondary hover:border-secondary'
               }`}
               onDragEnter={handleDragIn}
               onDragLeave={handleDragOut}
@@ -235,15 +272,19 @@ const Loopy = () => {
                 accept="audio/mp3, audio/wav"
                 onChange={handleFileChange}
               />
-              <UploadCloud className="w-12 h-8 mb-4 text-secondary-foreground" />
-              <p className="text-secondary-foreground text-lg p-4">Drag & drop your song here, or click to select</p>
-              <p className="text-sm text-secondary-foreground mt-1">MP3 or WAV files only</p>
+              <UploadCloud className="w-12 h-8 mb-4 text-secondary" />
+              <p className="text-secondary text-lg p-4">Drag & drop your song here, or click to select</p>
+              <p className="text-sm text-secondary mt-1">MP3 or WAV files only</p>
             </div>
-            {song && (
-                <div className="flex flex-col items-center justify-center w-full">
-                  <div className="flex flex-col mt-4 bg-background rounded-xl w-full h-full p-4">
+          </CardContent>
+        </Card>
+          {song && (
+            <div className="flex-2 flex flex-col w-full h-full ml-4">
+            <Card className="flex flex-col bg-secondary text-secondary-foreground rounded-xl w-full h-auto items-center justify-center">
+          <CardContent className="flex flex-col items-center justify-center w-full">
+                  <div className="flex flex-col bg-background rounded-full w-full h-full p-8">
                   <WavesurferPlayer
-                    height={100}
+                    height={50}
                     waveColor='#f85303'
                     progressColor='#fad484'
                     barWidth={2}
@@ -254,19 +295,24 @@ const Loopy = () => {
                     onPause={() => setIsPlaying(false)}
                   />
                   </div>
-                  <p className="text-secondary-foreground text-lg font-bold mt-4">SELECTED : {selectedFile?.name}</p>
-                  <div className="flex flex-row gap-4 self-center mt-4">
-                    <Button onClick={onPlayPause} size="lg" className="w-48 self-center text-lg bg-primary text-primary-foreground">
-                      {isPlaying ? 'PAUSE' : 'PLAY'}
-                    </Button>
-                    <Button onClick={handleProcessSong} size="lg" className="w-48 self-center text-lg bg-primary text-primary-foreground">
+                  <div className="flex flex-row justify-end w-full">
+                  {/* <p className="bg-background rounded-full text-secondary w-16 text-lg mr-4 text-center mt-4">{formatTime(currentTime)}</p> */}
+                  <p className="text-secondary-foreground text-lg px-4 mt-4">{selectedFile?.name}</p>
+                  </div>
+                </CardContent>
+                </Card>
+                  <div className="flex flex-row gap-4 items-stretch mt-4 flex-grow">
+                      <Button onClick={onPlayPause} size="lg" className="h-full aspect-square bg-primary text-primary-foreground rounded-full">
+                        {isPlaying ? <Pause className="size-15" fill="currentColor" /> : <Play className="size-15" fill="currentColor" />}
+                      </Button>
+                      <Button onClick={handleProcessSong} size="lg" className="h-full flex-grow text-4xl font-bold bg-primary text-primary-foreground rounded-full px-12">
                     PROCESS
                     </Button>
                   </div>
                 </div>
               )}
-          </CardContent>
-        </Card>
+        </div>
+        </>
       )}
       {!isLooping && processedSong && !loopedSong &&(
         <Card
@@ -288,6 +334,16 @@ const Loopy = () => {
                     onPlay={() => setIsPlaying(true)}
                     onPause={() => setIsPlaying(false)}
                   />
+                  <div ref={timelineRef} />
+                  </div>
+                  <div className="flex flex-row justify-around w-full mt-2 text-lg font-mono">
+                    <p>Current Time: {formatTime(currentTime)}</p>
+                    {regionInfo && (
+                        <>
+                            <p>Region Start: {regionInfo.start}</p>
+                            <p>Region End: {regionInfo.end}</p>
+                        </>
+                    )}
                   </div>
                   <div className="flex flex-col md:flex-row gap-4 self-center items-center mt-4">
                     <Button onClick={onPlayPause} size="lg" className="w-48 self-center text-lg bg-primary text-primary-foreground">

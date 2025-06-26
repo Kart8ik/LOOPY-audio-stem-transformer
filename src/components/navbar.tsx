@@ -7,7 +7,7 @@ const navbar = () => {
         <h1 className="text-2xl font-bold">Loopy</h1>
       </Link>
       <div className="flex flex-row justify-end items-end gap-8">
-        <Link to="/loopy" className="text-sm font-semibold">LOOPIFY</Link>
+        <Link to="/loop-lab" className="text-sm font-semibold">LOOP LAB</Link>
         <Link to="/how-to-use" className="text-sm font-semibold">HOW TO USE</Link>
         <Link to="/contact" className="text-sm font-semibold">CONTACT</Link>
       </div>

@@ -17,7 +17,7 @@ const Home = () => {
         <div className="flex flex-col w-1/3 h-full">
           <img src={loopy} alt="Loopy" className=" aspect-square ml-4 rounded-xl" />
           <div className="flex flex-row mt-4 ml-4 w-full h-full justify-center items-center gap-4">
-            <Link to="/loopy" className="flex flex-col w-full h-full bg-primary text-primary-foreground rounded-full p-4 justify-center items-center gap-4 w-1/2">  
+            <Link to="/loop-lab" className="flex flex-col w-full h-full bg-primary text-primary-foreground rounded-full p-4 justify-center items-center gap-4 w-1/2">  
               <p className="text-lg font-bold">CLICK TO TRY</p>
             </Link>
             <div className="flex flex-col bg-secondary h-full mr-4 aspect-square items-center justify-center bg-primary text-primary-foreground rounded-full p-4">
