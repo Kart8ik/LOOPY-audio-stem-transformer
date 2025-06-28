@@ -44,7 +44,7 @@ To get the frontend up and running on your local machine, follow these simple st
 
 1.  **Navigate to the frontend directory**:
     ```bash
-    cd loopy_frontend
+    cd LOOPY-audio-stem-transformer
     ```
 2.  **Install dependencies**:
     ```bash
