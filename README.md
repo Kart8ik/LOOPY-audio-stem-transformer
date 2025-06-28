@@ -2,7 +2,7 @@
 
 This is the frontend for Loopy Tune Demucs, a web application designed to create seamless background music loops from your favorite songs. It provides a sleek, modern, and interactive user interface for uploading a song, removing its vocals, selecting a perfect loop segment, and generating a final audio file ready for download.
 
-![Loopy UI Screenshot](\public\loopy.png)
+![Loopy UI Screenshot](./public/loopy.png)
 
 ---
 
