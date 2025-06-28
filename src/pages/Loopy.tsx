@@ -298,12 +298,12 @@ const Loopy = () => {
             <img src={loopy} alt="loopy" className="h-full w-full  object-cover" />
           </div>
           </div>
-        <div className="flex-2 flex flex-col w-full h-full">
+        <div className="flex-2 flex-grow flex flex-col w-full h-full">
         <Card
           className="flex-1 flex-col bg-secondary text-secondary-foreground rounded-xl w-full h-full items-center justify-center"
         >
           <CardContent className="w-full">
-                  <div className="flex flex-col w-full bg-background rounded-full p-4 px-12 h-full">
+                  <div className="flex flex-1 flex-col bg-background rounded-full p-4 px-12 h-full">
                   <WavesurferPlayer
                     height={100}
                     waveColor='#f85303'
@@ -318,13 +318,13 @@ const Loopy = () => {
                 </div>
           </CardContent>
         </Card>
-        <div className="flex flex-row gap-4 items-stretch flex-1 mt-4">
-                    <Button onClick={onPlayPause} size="lg" className="h-full aspect-square bg-primary text-primary-foreground rounded-full">
+        <div className="flex flex-row gap-4 items-stretch mt-4 flex-grow">
+                    <Button onClick={onPlayPause} className="h-full flex aspect-square bg-primary text-primary-foreground rounded-full">
                            {isPlaying ? <Pause className="size-15" fill="currentColor" /> : <Play className="size-15" fill="currentColor" />}
                     </Button>
-                    <Card className="flex-1 w-full bg-secondary text-secondary-foreground flex-grow rounded-xl">
-                      <CardContent className="flex flex-col items-center justify-center h-full gap-2">
-                        <p className="text-5xl font-bold">LOOP SECTION FOR</p>
+                    <Card className="flex-1 bg-secondary text-secondary-foreground flex-grow rounded-xl">
+                      <CardContent className="flex flex-col items-center justify-center flex-grow h-full gap-2">
+                        <p className="text-4xl text-center font-bold">LOOP SECTION FOR</p>
                         <div className="flex w-full flex-row items-center gap-2">
                       <Input 
                             type="number"
@@ -338,13 +338,13 @@ const Loopy = () => {
                                     setLoopDuration(0);
                                 }
                             }}
-                            className="flex flex-grow text-5xl bg-background text-center px-0 py-0 text-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                            className="flex-1 text-5xl bg-background text-center px-0 py-0 text-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         />
                         <p className="text-7xl font-bold">MINUTES</p>
                         </div>
                       </CardContent>
                     </Card>
-                    <Button onClick={handleLoopSong} size="lg" className="h-full flex-grow text-5xl font-bold bg-primary text-primary-foreground rounded-full" disabled={!activeRegion}>
+                    <Button onClick={handleLoopSong} className="flex-1 h-full flex-grow text-5xl font-bold bg-primary text-primary-foreground rounded-full" disabled={!activeRegion}>
                       LOOP
                     </Button>
                   </div>

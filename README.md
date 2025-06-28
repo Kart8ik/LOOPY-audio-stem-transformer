@@ -2,12 +2,11 @@
 
 This is the frontend for Loopy Tune Demucs, a web application designed to create seamless background music loops from your favorite songs. It provides a sleek, modern, and interactive user interface for uploading a song, removing its vocals, selecting a perfect loop segment, and generating a final audio file ready for download.
 
-![Loopy UI Screenshot](httpseno-placeholder-for-screenshot)
-*(Feel free to replace the placeholder above with a screenshot of the application)*
+![Loopy UI Screenshot](\public\loopy.png)
 
 ---
 
-## ✨ Features
+## Features
 
 - **Intuitive File Upload**: Supports both drag-and-drop and traditional file selection for `.mp3` and `.wav` files.
 - **Vocal Removal**: Integrates with the `demucs` backend to seamlessly strip vocals from uploaded tracks.
@@ -21,7 +20,7 @@ This is the frontend for Loopy Tune Demucs, a web application designed to create
 
 ---
 
-## 🚀 Tech Stack
+## Tech Stack
 
 - **Framework**: [React](https://react.dev/)
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
@@ -32,7 +31,7 @@ This is the frontend for Loopy Tune Demucs, a web application designed to create
 
 ---
 
-## 🏁 Getting Started
+## Getting Started
 
 To get the frontend up and running on your local machine, follow these simple steps.
 
@@ -65,7 +64,7 @@ To get the frontend up and running on your local machine, follow these simple st
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 The project follows a standard Vite + React project structure:
 
