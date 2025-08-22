@@ -60,7 +60,7 @@ To get the frontend up and running on your local machine, follow these simple st
 2.  **Open in your browser**:
     Navigate to `http://localhost:5173` (or the URL provided by Vite).
 
-> **Note**: This frontend requires the [corresponding backend]([(https://github.com/Kart8ik/LOOPY-audio-stem-transformer-backend)]) to be running simultaneously to handle file processing and looping. By default, it expects the backend to be available at `http://localhost:3000`.
+> **Note**: This frontend requires the [corresponding backend](https://github.com/Kart8ik/LOOPY-audio-stem-transformer-backend/) to be running simultaneously to handle file processing and looping. By default, it expects the backend to be available at `http://localhost:3000`.
 
 ---
 
