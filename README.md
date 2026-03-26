@@ -1,84 +1,217 @@
-# Loopy Tune Demucs - Frontend
+# LOOPY - Audio Stem Transformer
 
-This is the frontend for Loopy Tune Demucs, a web application designed to create seamless background music loops from your favorite songs. It provides a sleek, modern, and interactive user interface for uploading a song, removing its vocals, selecting a perfect loop segment, and generating a final audio file ready for download.
+LOOPY is a monorepo that turns songs into vocal-removed looping background tracks.
 
-![Loopy UI Screenshot](./public/loopy.png)
+It includes:
+- Frontend: React + TypeScript + Vite
+- Backend: FastAPI + Demucs + Pydub
 
----
+## Monorepo Structure
 
-## Features
-
-- **Intuitive File Upload**: Supports both drag-and-drop and traditional file selection for `.mp3` and `.wav` files.
-- **Vocal Removal**: Integrates with the `demucs` backend to seamlessly strip vocals from uploaded tracks.
-- **Interactive Waveform Visualization**: Uses WaveSurfer.js to display the audio waveform, allowing for precise visual selection of the loop region.
-- **Region Looping & Preview**: Users can select a specific segment of the processed audio and preview the loop in real-time.
-- **Customizable Loop Duration**: Specify the total length of the final looped audio in minutes.
-- **Dynamic UI**: The interface fluidly guides the user through each step of the process, from uploading to downloading.
-- **Engaging Loading Animations**: Custom-built, theme-consistent animations provide visual feedback during processing and looping.
-- **Responsive Design**: The layout is built with modern CSS (Flexbox and Tailwind CSS) to adapt to various screen sizes.
-- **Download Your Creation**: Once the loop is generated, it can be easily downloaded as an `.mp3` file.
-
----
-
-## Tech Stack
-
-- **Framework**: [React](https://react.dev/)
-- **Language**: [TypeScript](https://www.typescriptlang.org/)
-- **Build Tool**: [Vite](https://vitejs.dev/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
-- **UI Components**: [shadcn/ui](https://ui.shadcn.com/)
-- **Audio Visualization**: [WaveSurfer.js](https://wavesurfer.xyz/)
-
----
-
-## Getting Started
-
-To get the frontend up and running on your local machine, follow these simple steps.
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/) (v18 or later recommended)
-- [npm](https://www.npmjs.com/) or `yarn`
-
-### Installation
-
-1.  **Navigate to the frontend directory**:
-    ```bash
-    cd LOOPY-audio-stem-transformer
-    ```
-2.  **Install dependencies**:
-    ```bash
-    npm install
-    ```
-
-### Running the Development Server
-
-1.  **Start the dev server**:
-    ```bash
-    npm run dev
-    ```
-2.  **Open in your browser**:
-    Navigate to `http://localhost:5173` (or the URL provided by Vite).
-
-> **Note**: This frontend requires the [corresponding backend](https://github.com/Kart8ik/LOOPY-audio-stem-transformer-backend/) to be running simultaneously to handle file processing and looping. By default, it expects the backend to be available at `http://localhost:3000`.
-
----
-
-## Project Structure
-
-The project follows a standard Vite + React project structure:
-
+```text
+LOOPY-audio-stem-transformer/
+├── backend/                     # FastAPI + processing logic
+│   ├── server.py                # API routes
+│   ├── loopy.py                 # Demucs + loop generation
+│   ├── requirements.txt         # Python dependencies
+│   └── README.md                # Backend-focused notes
+├── frontend/                    # React app
+│   ├── src/
+│   ├── public/
+│   ├── package.json
+│   └── vite.config.ts
+├── package.json                 # Root workspace scripts
+├── setup.bat                    # Windows setup helper
+├── setup.sh                     # macOS/Linux setup helper
+├── CURRENT_IMPLEMENTATION.md    # Detailed file-by-file implementation docs
+└── README.md
 ```
-loopy_frontend/
-├── public/              # Static assets
-├── src/
-│   ├── assets/          # Images and other static assets
-│   ├── components/      # Reusable UI components (Navbar, ui/*)
-│   ├── lib/             # Utility functions (e.g., cn)
-│   ├── pages/           # Main application views (Home, Loopy, Processing)
-│   ├── App.tsx          # Main application component and router setup
-│   └── main.tsx         # Entry point of the application
-├── index.html           # Main HTML file
-├── package.json         # Project dependencies and scripts
-└── vite.config.ts       # Vite configuration
+
+## Prerequisites
+
+- Node.js 18+
+- npm
+- Python 3.8+
+- pip
+
+Recommended:
+- ffmpeg installed on your machine (required by pydub at runtime)
+
+## Setup
+
+Choose one method.
+
+### Method 1: Setup Script
+
+Windows:
+
+```powershell
+.\setup.bat
 ```
+
+macOS/Linux:
+
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+### Method 2: Manual Setup
+
+From repo root:
+
+```bash
+npm install
+```
+
+Then for backend:
+
+```bash
+cd backend
+python -m venv .venv
+```
+
+Activate venv:
+
+Windows PowerShell:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+macOS/Linux:
+
+```bash
+source .venv/bin/activate
+```
+
+Install backend deps:
+
+```bash
+pip install -r requirements.txt
+```
+
+## Run
+
+From repo root:
+
+Run both services:
+
+```bash
+npm run dev
+```
+
+Run individually:
+
+```bash
+npm run frontend:dev
+npm run backend:dev
+```
+
+Endpoints:
+- Frontend: http://localhost:5173
+- Backend: http://localhost:3000
+- Backend docs: http://localhost:3000/docs
+
+## How It Works (High Level)
+
+1. Frontend uploads an audio file to POST /upload-and-process.
+2. Backend runs Demucs and exposes instrumental output under /processed.
+3. Frontend lets user select a region on waveform.
+4. Frontend sends region + desired duration to POST /loop.
+5. Backend creates a looped mp3 and returns it for download.
+
+## Useful Scripts
+
+Root scripts (see package.json):
+- npm run dev
+- npm run build
+- npm run frontend:dev
+- npm run backend:dev
+- npm run backend:start
+
+## Troubleshooting
+
+- If upload endpoint fails with multipart error, install python-multipart in backend venv:
+
+```bash
+pip install python-multipart
+```
+
+- If backend cannot import packages, ensure backend venv is activated before running backend.
+- If ports are busy, run frontend/backend on alternate ports.
+
+## Documentation
+
+- Detailed implementation walkthrough: CURRENT_IMPLEMENTATION.md
+- Backend guide: backend/README.md
+- **Monorepo setup or general questions**: Refer to this README
+
+Happy coding! 🎵
+**Backend only**:
+```bash
+npm run backend:dev
+```
+The API will be available at `http://localhost:3000`.
+
+### Building for Production
+
+```bash
+npm run build
+```
+
+This builds the frontend for production. The backend is deployed separately using Python's standard deployment methods.
+
+---
+
+## 📦 Available Scripts
+
+### Root Commands
+- `npm run dev` - Start both frontend and backend in development mode
+- `npm run build` - Build frontend for production
+- `npm run clean` - Remove all node_modules and build artifacts
+
+### Frontend Commands
+- `npm run frontend:dev` - Start frontend development server
+- `npm run frontend:build` - Build frontend for production
+- `npm run frontend:preview` - Preview production build
+- `npm run frontend:lint` - Run ESLint
+
+### Backend Commands
+- `npm run backend:dev` - Start backend with hot reload (via Uvicorn)
+- `npm run backend:start` - Start backend server
+
+---
+
+## 🔌 API Integration
+
+By default, the frontend expects the backend to be available at `http://localhost:3000`. The API handles:
+- File uploads (`.mp3`, `.wav`)
+- Vocal removal via Demucs
+- Loop generation and audio processing
+- File downloads
+
+---
+
+## 📚 Workspace Management
+
+This project uses **npm workspaces** for monorepo management. Each workspace (`frontend` and `backend`) maintains its own dependencies and configuration while sharing the root configuration.
+
+To run a command in a specific workspace:
+```bash
+npm run <command> --workspace=<workspace-name>
+# Example: npm run dev --workspace=frontend
+```
+
+---
+
+## 📖 Additional Documentation
+
+- See [frontend/README.md](./frontend/README.md) for frontend-specific details
+- See [backend/README.md](./backend/README.md) for backend-specific details
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

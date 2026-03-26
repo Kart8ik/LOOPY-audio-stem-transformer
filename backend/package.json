@@ -1,0 +1,15 @@
+{
+  "name": "loopy-backend",
+  "version": "1.0.0",
+  "description": "Backend server for LOOPY - Audio Stem Transformer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "uvicorn server:app --reload --port 3000",
+    "start": "uvicorn server:app --port 3000",
+    "install": "pip install -r requirements.txt"
+  },
+  "engines": {
+    "python": ">=3.8"
+  }
+}
