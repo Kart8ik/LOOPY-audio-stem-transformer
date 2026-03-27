@@ -4,6 +4,7 @@ import Home from '@/pages/Home'
 import HowToUse from '@/pages/HowToUse'
 import Navbar from './components/navbar'
 import Loopy from './pages/Loopy'
+import CreateLoop from './pages/CreateLoop'
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/how-to-use" element={<HowToUse />} />
           <Route path="/loop-lab" element={<Loopy />} />
+          <Route path="/create-loop" element={<CreateLoop />} />
         </Routes>
       </BrowserRouter>
     </div>

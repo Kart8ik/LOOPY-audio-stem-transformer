@@ -4,6 +4,22 @@ from pydub import AudioSegment
 from pathlib import Path
 import uuid
 
+def slice_audio_with_ffmpeg(input_file: str, start_time: float, end_time: float, output_file: str):
+    """
+    Slice audio file using ffmpeg from start_time to end_time (in seconds).
+    Outputs sliced audio to output_file.
+    """
+    cmd = [
+        "ffmpeg",
+        "-i", input_file,
+        "-ss", str(start_time),
+        "-to", str(end_time),
+        "-c", "copy",  # Copy without re-encoding for speed
+        "-y",  # Overwrite output file if exists
+        output_file
+    ]
+    subprocess.run(cmd, check=True, capture_output=True)
+
 def separate_vocals(input_file, output_dir='separated', model='mdx_extra'):
     assert os.path.exists(input_file), "Input file doesn't exist"
     
@@ -19,6 +35,49 @@ def separate_vocals(input_file, output_dir='separated', model='mdx_extra'):
 
 # # Usage
 # separate_vocals("blue.mp3")
+
+def process_audio_segment(
+    input_filepath: str,
+    start_time: float,
+    end_time: float,
+    loop_duration_minutes: int,
+    job_id: str,
+    mode: str,
+):
+    """
+    Process a specific segment of audio in selected mode:
+    1. Slice the segment from start_time to end_time
+    2. Optionally run vocal separation (demucs)
+    3. Optionally loop the segment
+    
+    Returns path to final looped audio.
+    """
+    temp_dir = Path("temp_processing") / job_id
+    temp_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Step 1: Slice the audio
+    sliced_path = temp_dir / "sliced.mp3"
+    slice_audio_with_ffmpeg(input_filepath, start_time, end_time, str(sliced_path))
+    
+    current_audio_path = sliced_path
+
+    # Step 2: Optional vocal removal
+    if mode in ["vocals", "both"]:
+        separate_vocals(str(current_audio_path), output_dir=str(temp_dir / "separated"), model='mdx_extra')
+        demucs_output_path = temp_dir / "separated" / "mdx_extra" / current_audio_path.stem / "no_vocals.mp3"
+
+        if not demucs_output_path.exists():
+            raise FileNotFoundError(f"Demucs output not found at {demucs_output_path}")
+
+        current_audio_path = demucs_output_path
+
+    # Step 3: Optional looping
+    if mode in ["loop", "both"]:
+        # Use full segment by passing a large end time relative to expected slice length.
+        looped_path = create_loop(str(current_audio_path), 0, 10000, loop_duration_minutes)
+        current_audio_path = Path(looped_path)
+
+    return str(current_audio_path)
 
 def create_loop(filepath: str, start_time: float, end_time: float, loop_duration_minutes: int):
     audio = AudioSegment.from_file(filepath)

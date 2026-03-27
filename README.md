@@ -1,29 +1,47 @@
 # LOOPY - Audio Stem Transformer
 
-LOOPY is a monorepo that turns songs into vocal-removed looping background tracks.
+LOOPY is a monorepo for audio stem processing and loop generation.
 
-It includes:
+Tech stack:
 - Frontend: React + TypeScript + Vite
 - Backend: FastAPI + Demucs + Pydub
+
+## Current User Flow
+
+1. Upload an mp3/wav file in the frontend Upload screen.
+2. Frontend calls `POST /upload` and receives a `job_id`.
+3. User moves to Create Loop screen and selects a waveform region.
+4. User selects processing mode:
+- `loop`
+- `vocals`
+- `both`
+5. Frontend calls `POST /process` with:
+- `job_id`
+- `startTime`
+- `endTime`
+- `loopDuration`
+- `mode`
+6. Backend slices selected segment first, then applies mode-based processing, and returns final mp3 as file response.
 
 ## Monorepo Structure
 
 ```text
 LOOPY-audio-stem-transformer/
-├── backend/                     # FastAPI + processing logic
-│   ├── server.py                # API routes
-│   ├── loopy.py                 # Demucs + loop generation
-│   ├── requirements.txt         # Python dependencies
-│   └── README.md                # Backend-focused notes
-├── frontend/                    # React app
+├── backend/
+│   ├── server.py
+│   ├── loopy.py
+│   ├── requirements.txt
+│   └── README.md
+├── frontend/
 │   ├── src/
 │   ├── public/
 │   ├── package.json
 │   └── vite.config.ts
-├── package.json                 # Root workspace scripts
-├── setup.bat                    # Windows setup helper
-├── setup.sh                     # macOS/Linux setup helper
-├── CURRENT_IMPLEMENTATION.md    # Detailed file-by-file implementation docs
+├── package.json
+├── setup.bat
+├── setup.sh
+├── CURRENT_IMPLEMENTATION.md
+├── SYSTEM_FLAWS_AND_INEFFICIENCIES.md
 └── README.md
 ```
 
@@ -33,15 +51,11 @@ LOOPY-audio-stem-transformer/
 - npm
 - Python 3.8+
 - pip
-
-Recommended:
-- ffmpeg installed on your machine (required by pydub at runtime)
+- ffmpeg installed and available on PATH
 
 ## Setup
 
-Choose one method.
-
-### Method 1: Setup Script
+### Option 1: Scripts
 
 Windows:
 
@@ -56,7 +70,7 @@ chmod +x setup.sh
 ./setup.sh
 ```
 
-### Method 2: Manual Setup
+### Option 2: Manual
 
 From repo root:
 
@@ -64,7 +78,7 @@ From repo root:
 npm install
 ```
 
-Then for backend:
+Setup backend virtual environment:
 
 ```bash
 cd backend
@@ -85,7 +99,7 @@ macOS/Linux:
 source .venv/bin/activate
 ```
 
-Install backend deps:
+Install backend dependencies:
 
 ```bash
 pip install -r requirements.txt
@@ -95,123 +109,94 @@ pip install -r requirements.txt
 
 From repo root:
 
-Run both services:
-
 ```bash
 npm run dev
 ```
 
-Run individually:
+Or run services separately:
 
 ```bash
 npm run frontend:dev
 npm run backend:dev
 ```
 
-Endpoints:
+Default endpoints:
 - Frontend: http://localhost:5173
 - Backend: http://localhost:3000
-- Backend docs: http://localhost:3000/docs
+- OpenAPI docs: http://localhost:3000/docs
 
-## How It Works (High Level)
+## API Summary
 
-1. Frontend uploads an audio file to POST /upload-and-process.
-2. Backend runs Demucs and exposes instrumental output under /processed.
-3. Frontend lets user select a region on waveform.
-4. Frontend sends region + desired duration to POST /loop.
-5. Backend creates a looped mp3 and returns it for download.
+### POST /upload
+
+Upload audio file (`mp3`/`wav`) and receive job handle.
+
+Request:
+- multipart/form-data
+- field: `file`
+
+Response:
+
+```json
+{
+  "job_id": "uuid",
+  "filename": "original-name.mp3"
+}
+```
+
+### POST /process
+
+Process selected region in mode.
+
+Request JSON:
+
+```json
+{
+  "job_id": "uuid",
+  "startTime": 12.4,
+  "endTime": 26.7,
+  "loopDuration": 2,
+  "mode": "loop"
+}
+```
+
+`mode` values:
+- `loop`: slice -> loop
+- `vocals`: slice -> vocal removal
+- `both`: slice -> vocal removal -> loop
+
+Response:
+- `audio/mpeg` file stream
+
+### Legacy Endpoints (Backwards Compatibility)
+
+- `POST /upload-and-process`
+- `POST /loop`
+
+These remain available but are not part of the new primary flow.
 
 ## Useful Scripts
 
-Root scripts (see package.json):
-- npm run dev
-- npm run build
-- npm run frontend:dev
-- npm run backend:dev
-- npm run backend:start
+Root scripts:
+- `npm run dev`
+- `npm run build`
+- `npm run frontend:dev`
+- `npm run backend:dev`
+- `npm run backend:start`
 
 ## Troubleshooting
 
-- If upload endpoint fails with multipart error, install python-multipart in backend venv:
+- If upload fails with multipart errors:
 
 ```bash
 pip install python-multipart
 ```
 
-- If backend cannot import packages, ensure backend venv is activated before running backend.
-- If ports are busy, run frontend/backend on alternate ports.
+- If backend cannot find ffmpeg, install ffmpeg and ensure PATH is set.
+- If ports are busy, change frontend/backend ports and CORS list accordingly.
 
 ## Documentation
 
-- Detailed implementation walkthrough: CURRENT_IMPLEMENTATION.md
-- Backend guide: backend/README.md
-- **Monorepo setup or general questions**: Refer to this README
-
-Happy coding! 🎵
-**Backend only**:
-```bash
-npm run backend:dev
-```
-The API will be available at `http://localhost:3000`.
-
-### Building for Production
-
-```bash
-npm run build
-```
-
-This builds the frontend for production. The backend is deployed separately using Python's standard deployment methods.
-
----
-
-## 📦 Available Scripts
-
-### Root Commands
-- `npm run dev` - Start both frontend and backend in development mode
-- `npm run build` - Build frontend for production
-- `npm run clean` - Remove all node_modules and build artifacts
-
-### Frontend Commands
-- `npm run frontend:dev` - Start frontend development server
-- `npm run frontend:build` - Build frontend for production
-- `npm run frontend:preview` - Preview production build
-- `npm run frontend:lint` - Run ESLint
-
-### Backend Commands
-- `npm run backend:dev` - Start backend with hot reload (via Uvicorn)
-- `npm run backend:start` - Start backend server
-
----
-
-## 🔌 API Integration
-
-By default, the frontend expects the backend to be available at `http://localhost:3000`. The API handles:
-- File uploads (`.mp3`, `.wav`)
-- Vocal removal via Demucs
-- Loop generation and audio processing
-- File downloads
-
----
-
-## 📚 Workspace Management
-
-This project uses **npm workspaces** for monorepo management. Each workspace (`frontend` and `backend`) maintains its own dependencies and configuration while sharing the root configuration.
-
-To run a command in a specific workspace:
-```bash
-npm run <command> --workspace=<workspace-name>
-# Example: npm run dev --workspace=frontend
-```
-
----
-
-## 📖 Additional Documentation
-
-- See [frontend/README.md](./frontend/README.md) for frontend-specific details
-- See [backend/README.md](./backend/README.md) for backend-specific details
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+- Current implementation details: `CURRENT_IMPLEMENTATION.md`
+- Known flaws and inefficiencies: `SYSTEM_FLAWS_AND_INEFFICIENCIES.md`
+- Backend notes: `backend/README.md`
