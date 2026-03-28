@@ -38,6 +38,7 @@ def slice_audio_with_ffmpeg(input_file: str, start_time: float, end_time: float,
         "-y",  # Overwrite output file if exists
         output_file
     ]
+    Path(output_file).parent.mkdir(parents=True, exist_ok=True)
     try:
         subprocess.run(cmd, check=True, capture_output=True, text=True)
     except subprocess.CalledProcessError as e:
@@ -68,6 +69,7 @@ def separate_vocals_python(input_path: str, output_path: str):
         raise RuntimeError("Demucs model is not loaded")
 
     try:
+        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
         wav, sr = torchaudio.load(input_path, backend="soundfile")
         wav = convert_audio(wav, sr, model.samplerate, model.audio_channels)
         wav = wav.to(device)
@@ -165,7 +167,7 @@ def process_audio_segment(
 
 def create_loop_ffmpeg(input_file: str, loop_duration_minutes: int) -> str:
     output_dir = Path("separated") / "looped"
-    output_dir.mkdir(exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     output_path = output_dir / f"{uuid.uuid4()}.mp3"
 
@@ -184,17 +186,3 @@ def create_loop_ffmpeg(input_file: str, loop_duration_minutes: int) -> str:
     subprocess.run(cmd, check=True, capture_output=True)
 
     return str(output_path)
-
-def create_loop(filepath: str, start_time: float, end_time: float, loop_duration_minutes: int):
-    if end_time <= start_time:
-        raise ValueError("end_time must be greater than start_time")
-
-    temp_segment_path = Path("temp_processing") / f"loop_segment_{uuid.uuid4()}.mp3"
-    try:
-        slice_audio_with_ffmpeg(filepath, start_time, end_time, str(temp_segment_path))
-        if not temp_segment_path.exists():
-            raise FileNotFoundError(f"Loop segment not created at {temp_segment_path}")
-        return create_loop_ffmpeg(str(temp_segment_path), loop_duration_minutes)
-    finally:
-        if temp_segment_path.exists():
-            temp_segment_path.unlink(missing_ok=True)

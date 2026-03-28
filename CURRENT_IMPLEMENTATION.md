@@ -8,6 +8,7 @@ LOOPY is a monorepo with:
 
 Current primary flow:
 1. Upload file -> `POST /upload`
+  or fetch from YouTube -> `POST /from-url`
 2. Select segment and mode on Create Loop page
 3. Process request -> `POST /process`
 4. Download/play resulting mp3
@@ -24,8 +25,8 @@ Supported modes in `/process`:
 ### Frontend Flow
 
 1. User opens `/loop-lab`.
-2. User selects file (drag/drop or file picker).
-3. Frontend uploads file to `POST /upload`.
+2. User selects file (drag/drop or file picker) or enters a YouTube URL.
+3. Frontend sends either `POST /upload` or `POST /from-url`.
 4. Backend returns `{ job_id, filename }`.
 5. Frontend navigates to `/create-loop` with in-memory state including `job_id` and blob URL.
 6. User selects waveform region and mode toggles.
@@ -54,6 +55,11 @@ For every request:
 - `vocals`: slice -> demucs vocal removal
 - `both`: slice -> demucs -> loop
 4. Return resulting audio file.
+
+Backend processing notes:
+- Demucs model is loaded once at startup and reused for processing.
+- Primary loop generation in `/process` uses ffmpeg `-stream_loop`.
+- Parent directories are created automatically before writing output files.
 
 ---
 
@@ -104,16 +110,16 @@ For every request:
 ### `backend/server.py`
 - FastAPI app and route definitions
 - `/upload`: receives and stores uploads by `job_id`
+- `/from-url`: downloads YouTube audio and stores it by `job_id`
 - `/process`: primary processing endpoint with mode support
-- legacy endpoints kept for backward compatibility:
-- `/upload-and-process`
+- auxiliary endpoint:
 - `/loop`
 
 ### `backend/loopy.py`
 - audio processing helpers:
 - ffmpeg segment slicing
 - demucs vocal separation
-- looping logic
+- ffmpeg-based looping logic
 - mode-aware pipeline function (`process_audio_segment`)
 
 ---
@@ -131,6 +137,25 @@ Response:
 {
   "job_id": "uuid",
   "filename": "song.mp3"
+}
+```
+
+### `POST /from-url`
+
+Request:
+
+```json
+{
+  "url": "https://youtu.be/<video-id>"
+}
+```
+
+Response:
+
+```json
+{
+  "job_id": "uuid",
+  "filename": "downloaded-audio.mp3"
 }
 ```
 
@@ -157,8 +182,8 @@ Response:
 
 - Upload cleanup currently clears old temp/processed directories on new upload.
 - Processing is synchronous in request lifecycle.
-- Frontend stores upload state in route state; page refresh on `/create-loop` redirects back to upload.
-- Legacy endpoints still exist and are callable.
+- Frontend stores upload state in route state and local storage fallback for `/create-loop` continuity.
+- Backend write paths auto-create missing parent folders before writing files.
 
 ---
 

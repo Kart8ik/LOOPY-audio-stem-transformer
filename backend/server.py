@@ -162,6 +162,7 @@ async def upload_audio(file: UploadFile = File(...)):
     job_id = str(uuid.uuid4())
     unique_filename = f"{job_id}.{ext}"
     file_path = TEMP_UPLOAD_DIR / unique_filename
+    file_path.parent.mkdir(parents=True, exist_ok=True)
 
     # Save the uploaded file to the temp folder
     with file_path.open("wb") as buffer:
@@ -230,6 +231,7 @@ def from_url(request: URLRequest):
 
     job_id = str(uuid.uuid4())
     output_template = TEMP_UPLOAD_DIR / f"{job_id}.%(ext)s"
+    output_template.parent.mkdir(parents=True, exist_ok=True)
 
     try:
         logger.info("YouTube processing request received", extra={"url": request.url})

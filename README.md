@@ -2,14 +2,16 @@
 
 LOOPY is a monorepo for audio stem processing and loop generation.
 
+![LOOPY](frontend/public/loopy.png)
+
 Tech stack:
 - Frontend: React + TypeScript + Vite
-- Backend: FastAPI + Demucs + Pydub
+- Backend: FastAPI + Demucs + ffmpeg + torchaudio/pydub
 
 ## Current User Flow
 
-1. Upload an mp3/wav file in the frontend Upload screen.
-2. Frontend calls `POST /upload` and receives a `job_id`.
+1. Add audio from local file (`mp3`/`wav`) or YouTube URL.
+2. Frontend calls `POST /upload` or `POST /from-url` and receives a `job_id`.
 3. User moves to Create Loop screen and selects a waveform region.
 4. User selects processing mode:
 - `loop`
@@ -144,6 +146,27 @@ Response:
 }
 ```
 
+### POST /from-url
+
+Fetch audio from YouTube URL and receive job handle.
+
+Request JSON:
+
+```json
+{
+  "url": "https://youtu.be/<video-id>"
+}
+```
+
+Response:
+
+```json
+{
+  "job_id": "uuid",
+  "filename": "<downloaded-file>.mp3"
+}
+```
+
 ### POST /process
 
 Process selected region in mode.
@@ -168,12 +191,9 @@ Request JSON:
 Response:
 - `audio/mpeg` file stream
 
-### Legacy Endpoints (Backwards Compatibility)
+### Additional Endpoint
 
-- `POST /upload-and-process`
-- `POST /loop`
-
-These remain available but are not part of the new primary flow.
+- `POST /loop` (standalone loop generation)
 
 ## Useful Scripts
 
@@ -194,6 +214,15 @@ pip install python-multipart
 
 - If backend cannot find ffmpeg, install ffmpeg and ensure PATH is set.
 - If ports are busy, change frontend/backend ports and CORS list accordingly.
+- For restricted YouTube videos, configure one of:
+  - `YTDLP_COOKIES_FILE=<absolute-path-to-cookies.txt>`
+  - `YTDLP_COOKIES_FROM_BROWSER=chrome|edge|firefox`
+
+## Processing Notes
+
+- Demucs model is loaded once at backend startup and reused.
+- Looping in the primary pipeline is ffmpeg-based (`-stream_loop`) for faster output generation.
+- Backend write paths create missing parent directories automatically before writing output files.
 
 ## Documentation
 
