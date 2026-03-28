@@ -22,10 +22,9 @@ const Processing = (props: { isLooping: boolean }) => {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentText(prev => (prev + 1) % (props.isLooping ? LoopingText.length : processingText.length))
-      console.log(props.isLooping)
     }, 3000)
     return () => clearInterval(interval)
-  }, [])
+  }, [props.isLooping])
 
   return (
     <div className="relative flex h-[1300px] w-[1300px] items-center justify-center">

@@ -10,8 +10,8 @@ import { useNavigate } from 'react-router-dom'
 import loopy from "@/assets/loopy.png"
 
 const Loopy = () => {
-    const [song, setSong] = useState<string | null>(null)
-    const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [song, setSong] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [selectedFilename, setSelectedFilename] = useState<string | null>(null)
   const [youtubeJobId, setYoutubeJobId] = useState<string | null>(null)
     const [isUploading, setIsUploading] = useState(false)
@@ -24,14 +24,23 @@ const Loopy = () => {
     const inputRef = useRef<HTMLInputElement>(null)
     const navigate = useNavigate()
 
+    const selectAudioFile = (file: File) => {
+      setSong(URL.createObjectURL(file))
+      setSelectedFile(file)
+      setSelectedFilename(file.name)
+      setYoutubeJobId(null)
+      setErrorMessage(null)
+    }
+
+    const handleModeChange = (mode: "file" | "youtube") => {
+      setInputMode(mode)
+      setErrorMessage(null)
+    }
+
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0]
       if (file) {
-        setSong(URL.createObjectURL(file))
-        setSelectedFile(file)
-        setSelectedFilename(file.name)
-        setYoutubeJobId(null)
-        setErrorMessage(null)
+        selectAudioFile(file)
       }
     }
   
@@ -76,6 +85,7 @@ const Loopy = () => {
     const onPlayPause = () => {
       if (!wavesurfer) return
       wavesurfer.playPause()
+      setIsPlaying(wavesurfer.isPlaying())
     }
   
     const handleDrag = (e: React.DragEvent) => {
@@ -102,11 +112,7 @@ const Loopy = () => {
       if (e.dataTransfer.files && e.dataTransfer.files[0]) {
         const file = e.dataTransfer.files[0]
         if (file.type === 'audio/mpeg' || file.type === 'audio/wav') {
-          setSong(URL.createObjectURL(file))
-          setSelectedFile(file)
-          setSelectedFilename(file.name)
-          setYoutubeJobId(null)
-          setErrorMessage(null)
+          selectAudioFile(file)
         }
       }
     }
@@ -192,20 +198,14 @@ const Loopy = () => {
               <div className="flex flex-1 flex-col gap-3 h-full">
                 <Button
                   type="button"
-                  onClick={() => {
-                    setInputMode('file')
-                    setErrorMessage(null)
-                  }}
+                  onClick={() => handleModeChange('file')}
                   className={inputMode === 'file' ? 'flex-1 w-full text-4xl font-bold bg-primary text-primary-foreground rounded-full px-12' : 'flex-1 w-full text-4xl font-bold bg-secondary text-primary-foreground rounded-lg px-12'}
                 >
                   Upload File
                 </Button>
                 <Button
                   type="button"
-                  onClick={() => {
-                    setInputMode('youtube')
-                    setErrorMessage(null)
-                  }}
+                  onClick={() => handleModeChange('youtube')}
                   className={inputMode === 'youtube' ? 'flex-1 w-full text-4xl font-bold bg-primary text-primary-foreground rounded-full px-12' : 'flex-1 w-full text-4xl font-bold bg-secondary text-primary-foreground rounded-lg px-12'}
                 >
                   YouTube Link

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom"
 
-const navbar = () => {
+const Navbar = () => {
   return (
     <div className="m-3 flex bg-primary text-primary-foreground rounded-full w-auto justify-between items-center p-3 px-6">
       <Link to="/">
@@ -15,4 +15,4 @@ const navbar = () => {
   )
 }
 
-export default navbar
+export default Navbar
