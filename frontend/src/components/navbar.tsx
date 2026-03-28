@@ -9,7 +9,6 @@ const Navbar = () => {
       <div className="flex flex-row justify-end items-end gap-8">
         <Link to="/loop-lab" className="text-sm font-semibold">LOOP LAB</Link>
         <Link to="/how-to-use" className="text-sm font-semibold">HOW TO USE</Link>
-        <Link to="/contact" className="text-sm font-semibold">CONTACT</Link>
       </div>
     </div>
   )

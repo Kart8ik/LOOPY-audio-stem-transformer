@@ -5,6 +5,7 @@ import type { WaveformEditorHandle } from "@/features/loop/WaveformEditor"
 import { processAudio } from "@/api/audio"
 import LoopEditorView from "@/features/loop/LoopEditorView"
 import LoopResultView from "@/features/loop/LoopResultView"
+import { toast } from "@/hooks/use-toast"
 
 interface LocationState {
   job_id: string
@@ -79,7 +80,16 @@ const CreateLoop = () => {
 
 
     const handleProcess = async () => {
-        if (!waveformEditorRef.current?.activeRegion || !loopDuration) return
+        if (!waveformEditorRef.current?.activeRegion || !loopDuration) {
+            const message = "Please select an audio region and loop duration"
+            setErrorMessage(message)
+            toast({
+                variant: "destructive",
+                title: "Cannot process audio",
+                description: message,
+            })
+            return
+        }
         
         setIsProcessing(true)
         setErrorMessage(null)
@@ -96,7 +106,13 @@ const CreateLoop = () => {
             setLoopedSong(url)
         } catch (error) {
             console.error(error)
-            setErrorMessage(error instanceof Error ? error.message : 'Processing failed')
+            const message = error instanceof Error ? error.message : 'Processing failed'
+            setErrorMessage(message)
+            toast({
+                variant: "destructive",
+                title: "Processing error",
+                description: message,
+            })
         } finally {
             setIsProcessing(false)
         }

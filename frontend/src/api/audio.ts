@@ -2,6 +2,30 @@ import type { ProcessRequest } from "@/types/audio"
 
 const API_BASE = "http://localhost:3000"
 
+async function getResponseErrorMessage(response: Response, fallback: string) {
+  try {
+    const contentType = response.headers.get("content-type") ?? ""
+    if (contentType.includes("application/json")) {
+      const data = await response.json()
+      if (typeof data?.detail === "string" && data.detail.trim()) {
+        return data.detail
+      }
+      if (typeof data?.message === "string" && data.message.trim()) {
+        return data.message
+      }
+    }
+
+    const text = await response.text()
+    if (text.trim()) {
+      return text
+    }
+  } catch {
+    return fallback
+  }
+
+  return fallback
+}
+
 export async function uploadAudio(file: File) {
   const formData = new FormData()
   formData.append('file', file)
@@ -12,7 +36,7 @@ export async function uploadAudio(file: File) {
   })
 
   if (!response.ok) {
-    throw new Error('File upload failed')
+    throw new Error(await getResponseErrorMessage(response, 'File upload failed'))
   }
 
   return response.json()
@@ -28,7 +52,7 @@ export async function fetchAudioFromYoutube(url: string) {
   })
 
   if (!response.ok) {
-    throw new Error('Failed to fetch audio from YouTube')
+    throw new Error(await getResponseErrorMessage(response, 'Failed to fetch audio from YouTube'))
   }
 
   return response.json()
@@ -44,7 +68,7 @@ export async function processAudio(payload: ProcessRequest) {
   })
 
   if (!response.ok) {
-    throw new Error("Failed to process audio")
+    throw new Error(await getResponseErrorMessage(response, "Failed to process audio"))
   }
 
   return response.blob()

@@ -8,6 +8,7 @@ import loopy from "@/assets/loopy.png"
 import { uploadAudio, fetchAudioFromYoutube } from "@/api/audio"
 import LoopyUploadView from "@/features/loop/LoopyUploadView"
 import LoopyPreviewView from "@/features/loop/LoopyPreviewView"
+import { toast } from "@/hooks/use-toast"
 
 const Loopy = () => {
   const [song, setSong] = useState<string | null>(null)
@@ -44,7 +45,16 @@ const Loopy = () => {
   }
 
   const handleUpload = async () => {
-    if (!selectedFile) return
+    if (!selectedFile) {
+      const message = "Please select an audio file first"
+      setErrorMessage(message)
+      toast({
+        variant: "destructive",
+        title: "Upload error",
+        description: message,
+      })
+      return
+    }
 
     setIsUploading(true)
     setErrorMessage(null)
@@ -62,7 +72,13 @@ const Loopy = () => {
       })
     } catch (error) {
       console.error(error)
-      setErrorMessage(error instanceof Error ? error.message : 'Upload failed')
+      const message = error instanceof Error ? error.message : 'Upload failed'
+      setErrorMessage(message)
+      toast({
+        variant: "destructive",
+        title: "Upload error",
+        description: message,
+      })
     } finally {
       setIsUploading(false)
     }
@@ -99,13 +115,27 @@ const Loopy = () => {
       const file = e.dataTransfer.files[0]
       if (file.type === 'audio/mpeg' || file.type === 'audio/wav') {
         selectAudioFile(file)
+      } else {
+        const message = "Only MP3 and WAV files are supported"
+        setErrorMessage(message)
+        toast({
+          variant: "destructive",
+          title: "Invalid file type",
+          description: message,
+        })
       }
     }
   }
 
   const handleYoutubeSubmit = async () => {
     if (!youtubeUrl.trim()) {
-      setErrorMessage('Please enter a YouTube link')
+      const message = 'Please enter a YouTube link'
+      setErrorMessage(message)
+      toast({
+        variant: "destructive",
+        title: "YouTube link required",
+        description: message,
+      })
       return
     }
 
@@ -122,7 +152,13 @@ const Loopy = () => {
       setSong(`http://localhost:3000/uploaded/${job_id}`)
     } catch (error) {
       console.error(error)
-      setErrorMessage(error instanceof Error ? error.message : 'YouTube fetch failed')
+      const message = error instanceof Error ? error.message : 'YouTube fetch failed'
+      setErrorMessage(message)
+      toast({
+        variant: "destructive",
+        title: "YouTube fetch error",
+        description: message,
+      })
     } finally {
       setIsUploading(false)
     }
@@ -130,7 +166,16 @@ const Loopy = () => {
 
   const handleNext = () => {
     if (inputMode === 'youtube') {
-      if (!youtubeJobId || !song) return
+      if (!youtubeJobId || !song) {
+        const message = "Fetch a YouTube audio track before continuing"
+        setErrorMessage(message)
+        toast({
+          variant: "destructive",
+          title: "Cannot continue",
+          description: message,
+        })
+        return
+      }
       navigate('/create-loop', {
         state: {
           job_id: youtubeJobId,
