@@ -34,6 +34,8 @@ const CreateLoop = () => {
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
     const [loopEnabled, setLoopEnabled] = useState(true)
     const [vocalsEnabled, setVocalsEnabled] = useState(true)
+    const [isEditingDuration, setIsEditingDuration] = useState(false)
+    const [durationInput, setDurationInput] = useState(loopDuration.toString())
 
     const mode = loopEnabled && vocalsEnabled
         ? "both"
@@ -63,12 +65,40 @@ const CreateLoop = () => {
         setVocalsEnabled(checked)
     }
 
-    // Redirect if no state was passed
+    const handleEditDuration = () => {
+        setDurationInput(loopDuration.toString())
+        setIsEditingDuration(true)
+    }
+
+    const handleSaveDuration = () => {
+        const value = parseInt(durationInput)
+        if (value >= 1) {
+            setLoopDuration(value)
+        } else {
+            setDurationInput(loopDuration.toString())
+        }
+        setIsEditingDuration(false)
+    }
+
+    const handleDurationKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            handleSaveDuration()
+        } else if (e.key === 'Escape') {
+            setIsEditingDuration(false)
+        }
+    }
     useEffect(() => {
         if (!state || !state.job_id || !state.audioBlob) {
             navigate('/loop-lab')
         }
     }, [state, navigate])
+
+    // Update input field when loopDuration changes
+    useEffect(() => {
+        if (!isEditingDuration) {
+            setDurationInput(loopDuration.toString())
+        }
+    }, [loopDuration, isEditingDuration])
 
     const handleProcess = async () => {
         if (!activeRegion || !loopDuration) return
@@ -190,7 +220,7 @@ const CreateLoop = () => {
                 <div className="flex flex-col w-full h-full gap-4 overflow-hidden">
                     <div className="flex flex-row w-full h-[28vh] items-stretch justify-center gap-4">
                         <Card className="flex-2 flex-col justify-center bg-secondary text-secondary-foreground rounded-xl w-1/2 p-10">
-                            <CardTitle className="text-secondary-foreground text-8xl font-bold ">CREATE LOOP</CardTitle>
+                            <CardTitle className="text-secondary-foreground text-8xl font-bold ">CREATE</CardTitle>
                             <CardDescription className="text-secondary-foreground text-lg self-end">
                                 {mode === "loop" && "Loop a selected section for continuous playback"}
                                 {mode === "vocals" && "Remove vocals from the selected section"}
@@ -198,27 +228,23 @@ const CreateLoop = () => {
                             </CardDescription>
                         </Card>
                         <Card className="flex-1 flex-col justify-center bg-secondary text-secondary-foreground rounded-xl w-1/2 p-6 gap-2">
-                            <CardTitle className="text-secondary-foreground text-4xl font-bold ">MODES</CardTitle>
-                            <CardDescription className="text-secondary-foreground text-sm self-end">Select a region of your song to loop, and preview it</CardDescription>
-                            <CardContent>
+                            <CardTitle className="text-secondary-foreground text-6xl font-bold mb-4">MODES</CardTitle>
+                            <CardContent className="flex flex-col gap-4">
                                 <Field orientation="horizontal" className="max-w-sm">
                                     <FieldContent>
-                                        <FieldLabel htmlFor="switch-focus-mode">
+                                        <FieldLabel className="text-xl">
                                             Looping
                                         </FieldLabel>
-                                        {/* <FieldDescription>
-                                            This mode only loops the specific audio component given for specific duration 
-                                        </FieldDescription> */}
                                     </FieldContent>
-                                    <Switch id="switch-focus-mode" checked={loopEnabled} onCheckedChange={handleLoopToggle} />
+                                    <Switch className="size-bg" checked={loopEnabled} onCheckedChange={handleLoopToggle} />
                                 </Field>
-                                <Field orientation="horizontal" className="max-w-sm">
-                                    <FieldContent>
-                                        <FieldLabel htmlFor="switch-focus-mode">
+                                <Field orientation="horizontal" className="flex  max-w-sm">
+                                    <FieldContent className="flex flex-col">
+                                        <FieldLabel className="text-xl">
                                             Vocal Removal 
                                         </FieldLabel>
                                     </FieldContent>
-                                    <Switch id="switch-focus-mode" checked={vocalsEnabled} onCheckedChange={handleVocalsToggle} />
+                                    <Switch checked={vocalsEnabled} onCheckedChange={handleVocalsToggle} />
                                 </Field>
                             </CardContent>
                         </Card>
@@ -251,25 +277,45 @@ const CreateLoop = () => {
                                 {isPlaying ? <Pause className="size-15" fill="currentColor" /> : <Play className="size-15" fill="currentColor" />}
                             </Button>
                             <Card className={`flex-1 bg-secondary text-secondary-foreground flex-grow rounded-xl ${isLoopControlsDisabled ? 'opacity-50' : ''}`}>
-                                <CardContent className="flex flex-col items-center justify-center flex-grow h-full gap-2">
+                                <CardContent className="flex flex-col items-center justify-center flex-grow h-full gap-4">
                                     <p className="text-4xl text-center font-bold">LOOP SECTION FOR</p>
-                                    <div className="flex w-full flex-row items-center gap-2">
-                                        <Input 
-                                            type="number"
-                                            min="1"
-                                            value={loopDuration}
+                                    <div className="flex w-full flex-row items-center justify-center gap-8">
+                                        <Button 
+                                            onClick={() => setLoopDuration(Math.max(1, loopDuration - 1))}
+                                            disabled={isLoopControlsDisabled || loopDuration <= 1}
+                                            className="bg-primary text-primary-foreground rounded-full w-20 h-20 text-4xl font-bold hover:bg-primary/80"
+                                        >
+                                            -
+                                        </Button>
+                                        <div 
+                                            className="flex flex-col items-center gap-1 cursor-pointer h-fit"
+                                            onClick={handleEditDuration}
+                                        >
+                                            {isEditingDuration ? (
+                                                <Input
+                                                    type="number"
+                                                    min="1"
+                                                    value={durationInput}
+                                                    onChange={(e) => setDurationInput(e.target.value)}
+                                                    onBlur={handleSaveDuration}
+                                                    onKeyDown={handleDurationKeyDown}
+                                                    autoFocus
+                                                    className="text-6xl text-center text-primary font-bold w-32 p-0 border-0 bg-background h-fit leading-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                />
+                                            ) : (
+                                                <>
+                                                    <p className="text-7xl font-bold text-primary">{loopDuration}</p>
+                                                </>
+                                            )}
+                                            <p className="text-sm text-primary-foreground">MINUTES</p>
+                                        </div>
+                                        <Button 
+                                            onClick={() => setLoopDuration(loopDuration + 1)}
                                             disabled={isLoopControlsDisabled}
-                                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                                                const value = parseInt(e.target.value)
-                                                if (value >= 1) {
-                                                    setLoopDuration(value)
-                                                } else if (e.target.value === '') {
-                                                    setLoopDuration(1)
-                                                }
-                                            }}
-                                            className="flex-1 text-5xl bg-background text-center px-0 py-0 text-primary [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                        />
-                                        <p className="text-7xl font-bold">MINUTES</p>
+                                            className="bg-primary text-primary-foreground rounded-full w-20 h-20 text-4xl font-bold hover:bg-primary/80"
+                                        >
+                                            +
+                                        </Button>
                                     </div>
                                 </CardContent>
                             </Card>

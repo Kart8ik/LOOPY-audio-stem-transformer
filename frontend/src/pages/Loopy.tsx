@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { useState, useRef } from 'react'
 import WaveSurfer from 'wavesurfer.js'
 import { UploadCloud, Play, Pause } from "lucide-react"
@@ -11,11 +12,15 @@ import loopy from "@/assets/loopy.png"
 const Loopy = () => {
     const [song, setSong] = useState<string | null>(null)
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [selectedFilename, setSelectedFilename] = useState<string | null>(null)
+  const [youtubeJobId, setYoutubeJobId] = useState<string | null>(null)
     const [isUploading, setIsUploading] = useState(false)
     const [isPlaying, setIsPlaying] = useState(false)
     const [isDragging, setIsDragging] = useState(false)
     const [wavesurfer, setWavesurfer] = useState<WaveSurfer | null>(null)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
+    const [inputMode, setInputMode] = useState<"file" | "youtube">("file")
+    const [youtubeUrl, setYoutubeUrl] = useState("")
     const inputRef = useRef<HTMLInputElement>(null)
     const navigate = useNavigate()
 
@@ -24,6 +29,8 @@ const Loopy = () => {
       if (file) {
         setSong(URL.createObjectURL(file))
         setSelectedFile(file)
+        setSelectedFilename(file.name)
+        setYoutubeJobId(null)
         setErrorMessage(null)
       }
     }
@@ -97,6 +104,8 @@ const Loopy = () => {
         if (file.type === 'audio/mpeg' || file.type === 'audio/wav') {
           setSong(URL.createObjectURL(file))
           setSelectedFile(file)
+          setSelectedFilename(file.name)
+          setYoutubeJobId(null)
           setErrorMessage(null)
         }
       }
@@ -104,6 +113,59 @@ const Loopy = () => {
   
     const handleSelectFileClick = () => {
       inputRef.current?.click()
+    }
+
+    const handleYoutubeSubmit = async () => {
+      if (!youtubeUrl.trim()) {
+        setErrorMessage('Please enter a YouTube link')
+        return
+      }
+
+      setIsUploading(true)
+      setErrorMessage(null)
+
+      try {
+        const response = await fetch('http://localhost:3000/from-url', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ url: youtubeUrl.trim() }),
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch audio from YouTube')
+        }
+
+        const data = await response.json()
+        const { job_id, filename } = data
+
+        setYoutubeJobId(job_id)
+        setSelectedFile(null)
+        setSelectedFilename(filename)
+        setSong(`http://localhost:3000/uploaded/${job_id}`)
+      } catch (error) {
+        console.error(error)
+        setErrorMessage(error instanceof Error ? error.message : 'YouTube fetch failed')
+      } finally {
+        setIsUploading(false)
+      }
+    }
+
+    const handleNext = () => {
+      if (inputMode === 'youtube') {
+        if (!youtubeJobId || !song) return
+        navigate('/create-loop', {
+          state: {
+            job_id: youtubeJobId,
+            audioBlob: song,
+            filename: selectedFilename ?? 'input.mp3',
+          },
+        })
+        return
+      }
+
+      handleUpload()
     }
 
     const onReady = (ws: WaveSurfer) => {
@@ -122,9 +184,33 @@ const Loopy = () => {
             <>
             <div className="flex flex-row w-full h-[33vh] items-stretch justify-center gap-4 mb-4">
             <Card className="flex-2 flex-col justify-center bg-secondary text-secondary-foreground rounded-xl w-1/2 p-12">
-              <CardTitle className="text-secondary-foreground text-8xl font-bold ">UPLOAD</CardTitle>
+              <div className="flex flex-row items-center justify-between gap-4">
+                <CardTitle className="text-secondary-foreground text-8xl font-bold ">UPLOAD</CardTitle>
+              </div>
               <CardDescription className="text-secondary-foreground text-lg self-end">Add your favourite songs in the loop lab to process them</CardDescription>
             </Card>
+              <div className="flex flex-1 flex-col gap-3 h-full">
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setInputMode('file')
+                    setErrorMessage(null)
+                  }}
+                  className={inputMode === 'file' ? 'flex-1 w-full text-4xl font-bold bg-primary text-primary-foreground rounded-full px-12' : 'flex-1 w-full text-4xl font-bold bg-secondary text-primary-foreground rounded-lg px-12'}
+                >
+                  Upload File
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => {
+                    setInputMode('youtube')
+                    setErrorMessage(null)
+                  }}
+                  className={inputMode === 'youtube' ? 'flex-1 w-full text-4xl font-bold bg-primary text-primary-foreground rounded-full px-12' : 'flex-1 w-full text-4xl font-bold bg-secondary text-primary-foreground rounded-lg px-12'}
+                >
+                  YouTube Link
+                </Button>
+              </div>
             <div className="flex-1 w-full rounded-xl overflow-hidden">
               <img src={loopy} alt="loopy" className="h-full w-full  object-cover" />
             </div>
@@ -134,27 +220,47 @@ const Loopy = () => {
               className="flex-1 flex-col bg-secondary text-secondary-foreground rounded-xl w-full h-full items-center justify-center"
             >
               <CardContent className="w-full h-full">
-                <div
-                  className={`flex flex-col bg-background text-primary w-full h-full border-2 border-solid rounded-full items-center justify-center text-center cursor-pointer transition-colors ${
-                    isDragging ? 'border-primary' : 'border-secondary hover:border-secondary'
-                  }`}
-                  onDragEnter={handleDragIn}
-                  onDragLeave={handleDragOut}
-                  onDragOver={handleDrag}
-                  onDrop={handleDrop}
-                  onClick={handleSelectFileClick}
-                >
-                  <input
-                    ref={inputRef}
-                    type="file"
-                    className="hidden"
-                    accept="audio/mp3, audio/wav"
-                    onChange={handleFileChange}
-                  />
-                  <UploadCloud className="w-12 h-8 mb-4 text-secondary" />
-                  <p className="text-secondary text-lg p-4">Drag & drop your song here, or click to select</p>
-                  <p className="text-sm text-secondary mt-1">MP3 or WAV files only</p>
-                </div>
+                {inputMode === 'file' && (
+                  <div
+                    className={`flex flex-col bg-background text-primary w-full h-full border-2 border-solid rounded-full items-center justify-center text-center cursor-pointer transition-colors ${
+                      isDragging ? 'border-primary' : 'border-secondary hover:border-secondary'
+                    }`}
+                    onDragEnter={handleDragIn}
+                    onDragLeave={handleDragOut}
+                    onDragOver={handleDrag}
+                    onDrop={handleDrop}
+                    onClick={handleSelectFileClick}
+                  >
+                    <input
+                      ref={inputRef}
+                      type="file"
+                      className="hidden"
+                      accept="audio/mp3, audio/wav"
+                      onChange={handleFileChange}
+                    />
+                    <UploadCloud className="w-12 h-8 mb-4 text-secondary" />
+                    <p className="text-secondary text-lg p-4">Drag & drop your song here, or click to select</p>
+                    <p className="text-sm text-secondary mt-1">MP3 or WAV files only</p>
+                  </div>
+                )}
+                {inputMode === 'youtube' && (
+                  <div className="flex flex-col bg-background text-primary w-full h-full border-2 border-solid border-secondary rounded-full items-center justify-center text-center px-12 gap-4">
+                    <Input
+                      value={youtubeUrl}
+                      onChange={(e) => setYoutubeUrl(e.target.value)}
+                      placeholder="Paste YouTube link here..."
+                      className="w-full max-w-2xl bg-secondary text-secondary-foreground border-primary"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleYoutubeSubmit}
+                      className="bg-primary text-primary-foreground rounded-full px-10"
+                    >
+                      Fetch Audio
+                    </Button>
+                    <p className="text-sm text-secondary mt-1">Paste a YouTube link to extract audio</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
               {song && (
@@ -175,7 +281,7 @@ const Loopy = () => {
                        />
                        </div>
                       <div className="flex flex-row justify-end w-full">
-                      <p className="text-secondary-foreground text-lg px-4 mt-4">{selectedFile?.name}</p>
+                      <p className="text-secondary-foreground text-lg px-4 mt-4">{selectedFilename}</p>
                        </div>
                     </CardContent>
                     </Card>
@@ -183,7 +289,7 @@ const Loopy = () => {
                            <Button onClick={onPlayPause} size="lg" className="h-full aspect-square bg-primary text-primary-foreground rounded-full">
                              {isPlaying ? <Pause className="size-15" fill="currentColor" /> : <Play className="size-15" fill="currentColor" />}
                            </Button>
-                           <Button onClick={handleUpload} size="lg" className="h-full flex-grow text-5xl font-bold bg-primary text-primary-foreground rounded-full px-12">
+                    <Button onClick={handleNext} size="lg" className="h-full flex-grow text-5xl font-bold bg-primary text-primary-foreground rounded-full px-12">
                          NEXT
                          </Button>
                        </div>

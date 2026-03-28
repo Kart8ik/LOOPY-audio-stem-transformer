@@ -3,6 +3,7 @@ from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.staticfiles import StaticFiles
 import shutil
+import subprocess
 from pathlib import Path
 import uuid
 from loopy import separate_vocals, create_loop, process_audio_segment
@@ -57,6 +58,22 @@ class ProcessRequest(BaseModel):
     endTime: float
     loopDuration: int
     mode: Literal["loop", "vocals", "both"]
+
+class URLRequest(BaseModel):
+    url: str
+
+def download_audio_from_youtube(url: str, output_template: Path) -> Path:
+    cmd = [
+        "yt-dlp",
+        "-x",
+        "--audio-format", "mp3",
+        "-o", str(output_template),
+        url,
+    ]
+
+    subprocess.run(cmd, check=True)
+
+    return output_template.parent / f"{output_template.stem}.mp3"
 
 @app.get("/trial")
 def trial():
@@ -125,6 +142,40 @@ async def process_audio(request: ProcessRequest):
         return FileResponse(path=output_audio_path, media_type="audio/mpeg", filename="looped_audio.mp3")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/from-url")
+def from_url(request: URLRequest):
+    # Keep storage behavior aligned with /upload so /process works unchanged.
+    cleanup_directory(TEMP_UPLOAD_DIR)
+    cleanup_directory(PROCESSED_DIR)
+
+    job_id = str(uuid.uuid4())
+    output_template = TEMP_UPLOAD_DIR / f"{job_id}.%(ext)s"
+
+    try:
+        audio_path = download_audio_from_youtube(request.url, output_template)
+
+        if not audio_path.exists():
+            raise HTTPException(status_code=500, detail="Audio download failed")
+
+        return {
+            "job_id": job_id,
+            "filename": audio_path.name,
+        }
+    except subprocess.CalledProcessError:
+        raise HTTPException(status_code=400, detail="Failed to process YouTube URL")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/uploaded/{job_id}")
+def get_uploaded_audio(job_id: str):
+    for ext in ALLOWED_EXTENSIONS:
+        potential_path = TEMP_UPLOAD_DIR / f"{job_id}.{ext}"
+        if potential_path.exists():
+            media_type = "audio/mpeg" if ext == "mp3" else "audio/wav"
+            return FileResponse(path=potential_path, media_type=media_type, filename=potential_path.name)
+
+    raise HTTPException(status_code=404, detail=f"File not found for job_id: {job_id}")
 
 @app.post("/upload-and-process")
 async def upload_audio_old(file: UploadFile = File(...)):

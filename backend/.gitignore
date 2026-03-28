@@ -1,4 +1,5 @@
 __pycache__
 separated
 temp_uploads
+temp_processing
 .venv
