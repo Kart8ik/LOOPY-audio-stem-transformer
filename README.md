@@ -1,6 +1,6 @@
 # LOOPY - Audio Stem Transformer
 
-LOOPY is an audio loop generator with optional vocal removal. It supports local file uploads and YouTube links.
+LOOPY is an audio loop generator with optional vocal removal. It supports local file uploads and YouTube links, perfect for creating study background music (that's what I use it for).
 
 ![LOOPY](frontend/public/loopy.png)
 
