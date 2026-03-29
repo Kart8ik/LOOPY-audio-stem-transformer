@@ -14,7 +14,7 @@ const HowToUse = () => {
     { header: "3. Pick what you want to do", text:"You can Loop the audio for a given time, remove the vocals, or both", image: image3, alt: "image3" },
     { header: "4. Choose your section", text:"Select the part of the audio you want to loop with the handles", image: image4, alt: "image4" },
     { header: "5. Set the loop duration (if enabled)", text:"Decide how long you want the final loop to run by entering the value", image: image5, alt: "image5" },
-    { header: "6. Hit process", text:"Give the application around 40-60 seconds to do its thing", image: image6, alt: "image6" },
+    { header: "6. Hit Loop", text:"Give the application around 40-60 seconds to do its thing", image: image6, alt: "image6" },
     { header: "7. Preview and download  ", text:"Play your loop to try it out, go back or download it ", image: image7, alt: "image7" },
   ]
 

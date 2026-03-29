@@ -131,7 +131,7 @@ const CreateLoop = () => {
         <div className="flex flex-col w-full h-full bg-background text-foreground font-sans px-4 pb-4 overflow-x-hidden no-scrollbar">
             {isProcessing && (
                 <div className="flex flex-col w-full h-full items-center justify-center">
-                    <Processing isLooping={true} />
+                    <Processing mode={mode} />
                 </div>
             )}
             {!isProcessing && !loopedSong && (

@@ -36,16 +36,15 @@ uv pip install -r requirements.txt
 cd ..
 
 echo.
-echo ⚠️  Make sure ffmpeg is installed and added to PATH
-echo ⚠️  Make sure yt-dlp is installed (pip install yt-dlp)
+echo  Make sure ffmpeg is installed and added to PATH
+echo  Make sure yt-dlp is installed (pip install yt-dlp)
 echo.
 
 echo ======================================================
-echo ✅ Installation complete!
+echo Installation complete!
 echo ======================================================
 echo.
-echo Run the app:
-echo   npm run dev
+echo Follow the next steps from the README.md
 echo.
 
 pause

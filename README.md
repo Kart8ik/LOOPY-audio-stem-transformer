@@ -91,7 +91,7 @@ Mac/Linux:
 Windows:
 
 ```bat
-setup.bat
+./setup.bat
 ```
 
 ### Step 3 - Install PyTorch (inside venv)
@@ -131,9 +131,10 @@ uv pip uninstall torch torchaudio
 uv pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu121
 ```
 
-### Step 4 - Run app
+### Step 4 - Run app in the root folder
 
 ```bash
+cd ..
 npm run dev
 ```
 

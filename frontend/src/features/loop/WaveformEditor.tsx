@@ -1,4 +1,4 @@
-import { useState, useRef, forwardRef, useImperativeHandle } from 'react'
+import { useEffect, useState, useRef, forwardRef, useImperativeHandle } from 'react'
 import WaveSurfer from 'wavesurfer.js'
 import RegionsPlugin, { type Region } from 'wavesurfer.js/dist/plugins/regions.js'
 import WavesurferPlayer from '@wavesurfer/react'
@@ -9,13 +9,27 @@ export type { WaveformEditorHandle } from "@/types/loop"
 const WaveformEditor = forwardRef<WaveformEditorHandle, WaveformEditorProps>(({ audioUrl, onRegionChange, mode = 'region', onPlaybackChange }, ref) => {
     const [wavesurfer, setWavesurfer] = useState<WaveSurfer | null>(null)
     const [isPlaying, setIsPlaying] = useState(false)
+    const [isWaveLoading, setIsWaveLoading] = useState(true)
     const [activeRegion, setActiveRegion] = useState<Region | null>(null)
     const regionsRef = useRef<RegionsPlugin | null>(null)
+
+    useEffect(() => {
+        setIsWaveLoading(true)
+    }, [audioUrl])
 
     const onReady = (ws: WaveSurfer) => {
         setWavesurfer(ws)
         setIsPlaying(false)
+        setIsWaveLoading(false)
         onPlaybackChange?.(false)
+
+        ws.on('loading', () => {
+            setIsWaveLoading(true)
+        })
+
+        ws.on('ready', () => {
+            setIsWaveLoading(false)
+        })
 
         if (mode === 'full') {
             setActiveRegion(null)
@@ -87,23 +101,33 @@ const WaveformEditor = forwardRef<WaveformEditorHandle, WaveformEditorProps>(({ 
     }), [isPlaying, onPlayPause, activeRegion])
 
     return (
-        <WavesurferPlayer
-            height={100}
-            waveColor='#f85303'
-            progressColor='#fad484'
-            barWidth={2}
-            barGap={1}
-            url={audioUrl}
-            onReady={onReady}
-            onPlay={() => {
-                setIsPlaying(true)
-                onPlaybackChange?.(true)
-            }}
-            onPause={() => {
-                setIsPlaying(false)
-                onPlaybackChange?.(false)
-            }}
-        />
+        <div className="relative">
+            {isWaveLoading && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="h-20 w-full animate-pulse rounded-lg bg-primary" />
+                </div>
+            )}
+
+            <div className={`transition-opacity duration-500 ${isWaveLoading ? 'opacity-0' : 'opacity-100'}`}>
+                <WavesurferPlayer
+                    height={100}
+                    waveColor='#f85303'
+                    progressColor='#fad484'
+                    barWidth={2}
+                    barGap={1}
+                    url={audioUrl}
+                    onReady={onReady}
+                    onPlay={() => {
+                        setIsPlaying(true)
+                        onPlaybackChange?.(true)
+                    }}
+                    onPause={() => {
+                        setIsPlaying(false)
+                        onPlaybackChange?.(false)
+                    }}
+                />
+            </div>
+        </div>
     )
 })
 

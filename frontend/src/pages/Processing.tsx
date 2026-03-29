@@ -1,30 +1,46 @@
 import { useEffect, useState } from "react"
 
-const processingText: string[] = [
-  "Processing your wonderful song choice...",
-  "This usually takes around one and a half times the length of the song...",
-  "Watch this cool animation, while the backend elves do their magic...",
-  "Or maybe you can switch to another tab and come back later...",
-  "Thank you for your patience, and damn your song choice is nice !!!"
-]
+type ProcessingMode = "download" | "loop" | "vocals" | "both"
 
-const LoopingText: string[] = [
-  "Looping your Processed song...",
-  "This usually takes way less time than processing...",
-  "Watch this cool animation, while the backend elves do the magic again...",
-  "Or maybe you can switch to another tab and come back later...",
-  "Thank you for your patience, and I'm sure you'll love your loop !!!"
-]
+const messagesMap: Record<ProcessingMode, string[]> = {
+  download: [
+    "Fetching audio from YouTube...",
+    "Extracting the best audio stream...",
+    "Preparing your track...",
+    "Almost ready..."
+  ],
+  loop: [
+    "Preparing your audio...",
+    "Extracting the selected segment...",
+    "Generating your loop...",
+    "Almost done..."
+  ],
+  vocals: [
+    "Preparing your audio...",
+    "Extracting the selected segment...",
+    "Removing vocals (this takes the longest)...",
+    "Almost done..."
+  ],
+  both: [
+    "Preparing your audio...",
+    "Extracting the selected segment...",
+    "Removing vocals (this takes the longest)...",
+    "Generating your loop...",
+    "Almost done..."
+  ]
+}
 
-const Processing = (props: { isLooping: boolean }) => {
+const Processing = ({ mode }: { mode: ProcessingMode }) => {
+  const messages = messagesMap[mode]
   const [currentText, setCurrentText] = useState(0)
 
   useEffect(() => {
+    setCurrentText(0)
     const interval = setInterval(() => {
-      setCurrentText(prev => (prev + 1) % (props.isLooping ? LoopingText.length : processingText.length))
+      setCurrentText(prev => (prev + 1) % messages.length)
     }, 3000)
     return () => clearInterval(interval)
-  }, [props.isLooping])
+  }, [messages, mode])
 
   return (
     <div className="relative flex h-[1300px] w-[1300px] items-center justify-center">
@@ -36,7 +52,7 @@ const Processing = (props: { isLooping: boolean }) => {
         key={currentText}
         className="animate-in fade-in duration-500 absolute max-w-2xl text-center text-4xl font-bold text-secondary"
       >
-        {props.isLooping ? LoopingText[currentText] : processingText[currentText]}
+        {messages[currentText]}
       </p>
     </div>
   )
