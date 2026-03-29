@@ -121,14 +121,15 @@ Verify:
 ```bash
 python -c "import torch; print('CUDA available:', torch.cuda.is_available())"
 ```
-> If it says False when you installed the GPU version, it might be because you have the CPU version installed already. Run these commands and then retry the verification. If the issue still persists, it's probably an issue with your GPU drivers (check them out).
+> If it says `False` when you installed the GPU version, it might be because you have the CPU version installed already. Run these below commands and retry the verification. If the issue still persists, it's probably an issue with your GPU drivers (check them out).
 
 
 
 ```bash
 uv pip uninstall torch torchaudio 
-```
 
+uv pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu121
+```
 
 ### Step 4 - Run app
 
