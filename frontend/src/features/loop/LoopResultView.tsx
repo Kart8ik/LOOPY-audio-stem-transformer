@@ -3,15 +3,7 @@ import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/c
 import { Play, Pause } from "lucide-react"
 import loopy from "@/assets/loopy.png"
 import WaveformEditor from "@/features/loop/WaveformEditor"
-
-type LoopResultViewProps = {
-  loopedSong: string
-  isPlaying: boolean
-  setIsPlaying: (v: boolean) => void
-  waveformEditorRef: any
-  handleLoopedDownload: () => void
-  setLoopedSong: (v: string | null) => void
-}
+import type { LoopResultViewProps } from "@/types/loop"
 
 const LoopResultView = ({
   loopedSong,

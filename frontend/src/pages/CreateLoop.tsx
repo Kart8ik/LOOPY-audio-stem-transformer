@@ -6,12 +6,7 @@ import { processAudio } from "@/api/audio"
 import LoopEditorView from "@/features/loop/LoopEditorView"
 import LoopResultView from "@/features/loop/LoopResultView"
 import { toast } from "@/hooks/use-toast"
-
-interface LocationState {
-  job_id: string
-  audioBlob: string
-  filename: string
-}
+import type { LocationState } from "@/types/navigation"
 
 const CreateLoop = () => {
     const location = useLocation()

@@ -2,19 +2,9 @@ import { useState, useRef, forwardRef, useImperativeHandle } from 'react'
 import WaveSurfer from 'wavesurfer.js'
 import RegionsPlugin, { type Region } from 'wavesurfer.js/dist/plugins/regions.js'
 import WavesurferPlayer from '@wavesurfer/react'
+import type { WaveformEditorHandle, WaveformEditorProps } from "@/types/loop"
 
-type WaveformEditorProps = {
-    audioUrl: string
-    onRegionChange: (start: number, end: number) => void
-    mode?: 'region' | 'full'
-    onPlaybackChange?: (isPlaying: boolean) => void
-}
-
-export type WaveformEditorHandle = {
-    isPlaying: boolean
-    onPlayPause: () => void
-    activeRegion: Region | null
-}
+export type { WaveformEditorHandle } from "@/types/loop"
 
 const WaveformEditor = forwardRef<WaveformEditorHandle, WaveformEditorProps>(({ audioUrl, onRegionChange, mode = 'region', onPlaybackChange }, ref) => {
     const [wavesurfer, setWavesurfer] = useState<WaveSurfer | null>(null)

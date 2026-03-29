@@ -2,12 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { useState, useEffect } from 'react'
 import { Input } from "@/components/ui/input"
-
-type LoopControlsProps = {
-  loopDuration: number
-  setLoopDuration: (value: number) => void
-  disabled: boolean
-}
+import type { LoopControlsProps } from "@/types/loop"
 
 const LoopControls = ({ loopDuration, setLoopDuration, disabled }: LoopControlsProps) => {
     const [isEditingDuration, setIsEditingDuration] = useState(false)

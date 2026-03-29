@@ -1,16 +1,9 @@
 import * as React from "react"
 
-import type { ToastActionElement, ToastProps } from "@/components/ui/toast"
+import type { ActionType, Toast, ToasterToast, ToastState } from "@/types/toast"
 
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
-
-type ToasterToast = ToastProps & {
-  id: string
-  title?: React.ReactNode
-  description?: React.ReactNode
-  action?: ToastActionElement
-}
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
@@ -26,27 +19,6 @@ function genId() {
   return count.toString()
 }
 
-type ActionType =
-  | {
-      type: typeof actionTypes.ADD_TOAST
-      toast: ToasterToast
-    }
-  | {
-      type: typeof actionTypes.UPDATE_TOAST
-      toast: Partial<ToasterToast>
-    }
-  | {
-      type: typeof actionTypes.DISMISS_TOAST
-      toastId?: ToasterToast["id"]
-    }
-  | {
-      type: typeof actionTypes.REMOVE_TOAST
-      toastId?: ToasterToast["id"]
-    }
-
-interface State {
-  toasts: ToasterToast[]
-}
 
 const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
 
@@ -66,7 +38,7 @@ const addToRemoveQueue = (toastId: string) => {
   toastTimeouts.set(toastId, timeout)
 }
 
-export const reducer = (state: State, action: ActionType): State => {
+export const reducer = (state: ToastState, action: ActionType): ToastState => {
   switch (action.type) {
     case actionTypes.ADD_TOAST:
       return {
@@ -119,9 +91,9 @@ export const reducer = (state: State, action: ActionType): State => {
   }
 }
 
-const listeners: Array<(state: State) => void> = []
+const listeners: Array<(state: ToastState) => void> = []
 
-let memoryState: State = { toasts: [] }
+let memoryState: ToastState = { toasts: [] }
 
 function dispatch(action: ActionType) {
   memoryState = reducer(memoryState, action)
@@ -129,8 +101,6 @@ function dispatch(action: ActionType) {
     listener(memoryState)
   })
 }
-
-type Toast = Omit<ToasterToast, "id">
 
 function toast({ ...props }: Toast) {
   const id = genId()
@@ -162,7 +132,7 @@ function toast({ ...props }: Toast) {
 }
 
 function useToast() {
-  const [state, setState] = React.useState<State>(memoryState)
+  const [state, setState] = React.useState<ToastState>(memoryState)
 
   React.useEffect(() => {
     listeners.push(setState)

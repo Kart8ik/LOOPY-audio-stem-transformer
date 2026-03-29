@@ -5,25 +5,7 @@ import loopy from "@/assets/loopy.png"
 import ModeSelector from "@/features/loop/ModeSelector"
 import LoopControls from "@/features/loop/LoopControls"
 import WaveformEditor from "@/features/loop/WaveformEditor"
-
-type LoopEditorViewProps = {
-  mode: string
-  loopEnabled: boolean
-  vocalsEnabled: boolean
-  setLoopEnabled: (v: boolean) => void
-  setVocalsEnabled: (v: boolean) => void
-  loopDuration: number
-  setLoopDuration: (n: number) => void
-  isLoopControlsDisabled: boolean
-  isPlaying: boolean
-  setIsPlaying: (v: boolean) => void
-  waveformEditorRef: any
-  audioUrl: string
-  setStartTime: (n: number) => void
-  setEndTime: (n: number) => void
-  handleProcess: () => void
-  errorMessage: string | null
-}
+import type { LoopEditorViewProps } from "@/types/loop"
 
 const LoopEditorView = ({
   mode,

@@ -2,18 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Play, Pause } from "lucide-react"
 import WavesurferPlayer from '@wavesurfer/react'
-import WaveSurfer from 'wavesurfer.js'
-
-type LoopyPreviewViewProps = {
-  song: string
-  selectedFilename: string | null
-  isPlaying: boolean
-  setIsPlaying: (v: boolean) => void
-  onPlayPause: () => void
-  onNext: () => void
-  errorMessage: string | null
-  onReady: (ws: WaveSurfer) => void
-}
+import type { LoopyPreviewViewProps } from "@/types/loop"
 
 const LoopyPreviewView = ({
   song,

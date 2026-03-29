@@ -1,12 +1,7 @@
 import { Switch } from "@/components/ui/switch"
 import { Field, FieldContent, FieldLabel } from "@/components/ui/field"
 import { toast } from "@/hooks/use-toast"
-
-type ModeSelectorProps = {
-  loopEnabled: boolean
-  vocalsEnabled: boolean
-  onChange: (loop: boolean, vocals: boolean) => void
-}
+import type { ModeSelectorProps } from "@/types/loop"
 
 const ModeSelector = ({ loopEnabled, vocalsEnabled, onChange }: ModeSelectorProps) => {
   const handleLoopToggle = (checked: boolean) => {

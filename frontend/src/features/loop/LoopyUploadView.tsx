@@ -3,20 +3,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { UploadCloud } from "lucide-react"
 import { useRef } from 'react'
-
-type LoopyUploadViewProps = {
-  inputMode: "file" | "youtube"
-  isDragging: boolean
-  youtubeUrl: string
-  setYoutubeUrl: (v: string) => void
-  onModeChange: (mode: "file" | "youtube") => void
-  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-  onDragEnter: (e: React.DragEvent) => void
-  onDragLeave: (e: React.DragEvent) => void
-  onDragOver: (e: React.DragEvent) => void
-  onDrop: (e: React.DragEvent) => void
-  onYoutubeSubmit: () => void
-}
+import type { LoopyUploadViewProps } from "@/types/loop"
 
 const LoopyUploadView = ({
   inputMode,

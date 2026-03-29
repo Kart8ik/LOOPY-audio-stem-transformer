@@ -4,6 +4,7 @@ import { X } from "lucide-react"
 import { Toast as ToastPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
+import type { ToastActionElement, ToastProps } from "@/types/toast"
 
 const ToastProvider = ToastPrimitive.Provider
 
@@ -108,9 +109,6 @@ const ToastDescription = React.forwardRef<
   />
 ))
 ToastDescription.displayName = ToastPrimitive.Description.displayName
-
-type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>
-type ToastActionElement = React.ReactElement<typeof ToastAction>
 
 export {
   type ToastProps,
