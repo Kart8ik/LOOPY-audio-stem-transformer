@@ -150,3 +150,24 @@ npm run dev
 - First run may be slower because model loading takes time
 - GPU acceleration significantly improves performance (whole process finishes in 30s to a minute)
 - ffmpeg is required for audio processing
+
+## 7. Future Ideas
+
+This iteration focused on improving usability and performance. The app flow was simplified, legacy code was cleaned up, logging and error handling were improved, and the Demucs integration was moved from CLI-based execution to an in-memory API approach.
+
+This reduced processing time significantly — from several minutes to around 40 seconds for typical use cases.
+
+The setup process was also streamlined to make the project easy to clone and run locally.
+
+---
+
+### Potential improvements
+
+- Automatic loop region detection using audio similarity / pattern matching  
+- Smarter loop suggestions based on beat or structure  
+- Dockerization for easier deployment  
+- Exploring deployment options once GPU handling is more standardized  
+
+---
+
+This project was built to solve a real personal use case, and it’s now at a point where it’s genuinely usable.
