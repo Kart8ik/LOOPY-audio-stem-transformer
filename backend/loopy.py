@@ -9,8 +9,6 @@ from demucs.audio import convert_audio
 import torch
 import torchaudio
 
-torchaudio.set_audio_backend("soundfile")
-
 logger = logging.getLogger(__name__)
 
 model = None
@@ -186,3 +184,30 @@ def create_loop_ffmpeg(input_file: str, loop_duration_minutes: int) -> str:
     subprocess.run(cmd, check=True, capture_output=True)
 
     return str(output_path)
+
+
+def create_loop(filepath: str, start_time: float, end_time: float, loop_duration_minutes: int) -> str:
+    """
+    Create a loop from a selected segment in an audio file.
+    1. Slice input audio between start/end times.
+    2. Repeat it to the requested duration.
+
+    Returns the final looped audio path.
+    """
+    input_path = Path(filepath)
+    if not input_path.exists():
+        raise FileNotFoundError(f"Input file does not exist: {filepath}")
+    if end_time <= start_time:
+        raise ValueError("end_time must be greater than start_time")
+    if loop_duration_minutes <= 0:
+        raise ValueError("loop_duration_minutes must be greater than 0")
+
+    temp_dir = Path("temp_processing") / f"loop_{uuid.uuid4().hex}"
+    temp_dir.mkdir(parents=True, exist_ok=True)
+
+    input_suffix = input_path.suffix.lower()
+    sliced_extension = input_suffix if input_suffix in [".mp3", ".wav"] else ".mp3"
+    sliced_path = temp_dir / f"sliced{sliced_extension}"
+
+    slice_audio_with_ffmpeg(str(input_path), start_time, end_time, str(sliced_path))
+    return create_loop_ffmpeg(str(sliced_path), loop_duration_minutes)
