@@ -1,9 +1,7 @@
 {
   "name": "loopy-audio-stem-transformer",
   "version": "1.0.0",
-  "description": "A monorepo for LOOPY - Audio Stem Transformer (Vocal Removal & Loop Sequencer)",
   "private": true,
-  "type": "module",
   "workspaces": [
     "frontend",
     "backend"
@@ -13,12 +11,10 @@
     "frontend:build": "npm run build --workspace=frontend",
     "frontend:preview": "npm run preview --workspace=frontend",
     "frontend:lint": "npm run lint --workspace=frontend",
-    "backend:install": "cd backend && pip install -r requirements.txt",
-    "backend:dev": "npm run dev --workspace=backend",
-    "backend:start": "npm run start --workspace=backend",
+    "backend:dev": "cd backend && uvicorn server:app --reload --port 3000",
+    "backend:start": "cd backend && uvicorn server:app --port 3000",
     "dev": "concurrently \"npm run frontend:dev\" \"npm run backend:dev\"",
-    "build": "npm run frontend:build",
-    "clean": "npm workspaces foreach --if-present run clean"
+    "build": "npm run frontend:build"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

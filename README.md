@@ -1,231 +1,142 @@
 # LOOPY - Audio Stem Transformer
 
-LOOPY is a monorepo for audio stem processing and loop generation.
+LOOPY is an audio loop generator with optional vocal removal. It supports local file uploads and YouTube links.
 
 ![LOOPY](frontend/public/loopy.png)
 
-Tech stack:
-- Frontend: React + TypeScript + Vite
-- Backend: FastAPI + Demucs + ffmpeg + torchaudio/pydub
+## 1. Project Overview
 
-## Current User Flow
+LOOPY helps you create loop-ready audio clips quickly. You can upload audio or fetch it from YouTube, select a region on the waveform, and process it for looping, vocal removal, or both.
 
-1. Add audio from local file (`mp3`/`wav`) or YouTube URL.
-2. Frontend calls `POST /upload` or `POST /from-url` and receives a `job_id`.
-3. User moves to Create Loop screen and selects a waveform region.
-4. User selects processing mode:
-- `loop`
-- `vocals`
-- `both`
-5. Frontend calls `POST /process` with:
-- `job_id`
-- `startTime`
-- `endTime`
-- `loopDuration`
-- `mode`
-6. Backend slices selected segment first, then applies mode-based processing, and returns final mp3 as file response.
+## 2. Features
 
-## Monorepo Structure
+- Upload audio file or use YouTube link
+- Select loop region using waveform editor
+- Vocal removal with Demucs
+- Fast loop generation with ffmpeg
+
+## 3. Prerequisites
+
+- Python 3.10+ (3.11 recommended)
+- Node.js v18+
+- ffmpeg installed and available in PATH
+
 
 ```text
 LOOPY-audio-stem-transformer/
 ├── backend/
-│   ├── server.py
-│   ├── loopy.py
-│   ├── requirements.txt
-│   └── README.md
+│   ├── .venv/                    # Python virtual environment (generated)
+│   ├── loopy.py                  # Core audio processing helpers
+│   ├── server.py                 # FastAPI app and API routes
+│   ├── requirements.txt          # Backend Python dependencies
+│   ├── package.json              # Backend run scripts
+│   ├── temp_uploads/             # Uploaded source files (generated at runtime)
+│   ├── temp_processing/          # Intermediate processing artifacts (generated)
+│   └── separated/                # Stem separation outputs (generated)
 ├── frontend/
-│   ├── src/
 │   ├── public/
+│   │   └── loopy.png             # README/app branding image
+│   ├── src/
+│   │   ├── api/
+│   │   │   └── audio.ts          # Frontend API calls to backend
+│   │   ├── components/
+│   │   │   ├── navbar.tsx
+│   │   │   └── ui/               # Reusable UI primitives
+│   │   ├── features/
+│   │   │   └── loop/             # Upload, preview, editor, and loop controls
+│   │   ├── hooks/
+│   │   │   └── use-toast.ts
+│   │   ├── lib/
+│   │   │   └── utils.ts
+│   │   ├── pages/
+│   │   │   ├── Home.tsx
+│   │   │   ├── Loopy.tsx
+│   │   │   ├── CreateLoop.tsx
+│   │   │   ├── Processing.tsx
+│   │   │   └── HowToUse.tsx
+│   │   ├── types/                # Shared frontend TypeScript types
+│   │   ├── App.tsx               # App routes and shell
+│   │   ├── main.tsx              # React entry point
+│   │   └── index.css             # Global styles
+│   ├── index.html
 │   ├── package.json
 │   └── vite.config.ts
-├── package.json
-├── setup.bat
-├── setup.sh
-├── CURRENT_IMPLEMENTATION.md
-├── SYSTEM_FLAWS_AND_INEFFICIENCIES.md
+├── CURRENT_IMPLEMENTATION.md     # Technical implementation notes
+├── package.json                  # Monorepo scripts (frontend + backend)
+├── package-lock.json
+├── setup.sh                      # macOS/Linux setup script
+├── setup.bat                     # Windows setup script
 └── README.md
 ```
 
-## Prerequisites
 
-- Node.js 18+
-- npm
-- Python 3.8+
-- pip
-- ffmpeg installed and available on PATH
+## 4. Setup Steps
 
-## Setup
-
-### Option 1: Scripts
-
-Windows:
-
-```powershell
-.\setup.bat
-```
-
-macOS/Linux:
+### Step 1 - Verify prerequisites
 
 ```bash
-chmod +x setup.sh
+python --version
+node -v
+ffmpeg -version
+```
+
+### Step 2 - Run setup script
+
+Mac/Linux:
+
+```bash
 ./setup.sh
 ```
 
-### Option 2: Manual
+Windows:
 
-From repo root:
-
-```bash
-npm install
+```bat
+setup.bat
 ```
 
-Setup backend virtual environment:
+### Step 3 - Install PyTorch (inside venv)
 
 ```bash
 cd backend
-python -m venv .venv
+source .venv/bin/activate   # Mac/Linux
+.venv\Scripts\activate      # Windows
 ```
+either CPU or GPU from below depending on your system availabilities:
 
-Activate venv:
-
-Windows PowerShell:
-
-```powershell
-.\.venv\Scripts\Activate.ps1
-```
-
-macOS/Linux:
+CPU:
 
 ```bash
-source .venv/bin/activate
+pip install torch torchaudio
 ```
+(or)
 
-Install backend dependencies:
+GPU (example CUDA 12.1):
 
 ```bash
-pip install -r requirements.txt
+pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu121
 ```
 
-## Run
+Verify:
 
-From repo root:
+```bash
+python -c "import torch; print('CUDA available:', torch.cuda.is_available())"
+```
+
+### Step 4 - Run app
 
 ```bash
 npm run dev
 ```
 
-Or run services separately:
+## 5. Usage
 
-```bash
-npm run frontend:dev
-npm run backend:dev
-```
+1. Upload audio file or paste YouTube link
+2. Select the audio region on waveform
+3. Choose mode: loop, vocals, or both
+4. Process and download result
 
-Default endpoints:
-- Frontend: http://localhost:5173
-- Backend: http://localhost:3000
-- OpenAPI docs: http://localhost:3000/docs
+## 6. Notes
 
-## API Summary
-
-### POST /upload
-
-Upload audio file (`mp3`/`wav`) and receive job handle.
-
-Request:
-- multipart/form-data
-- field: `file`
-
-Response:
-
-```json
-{
-  "job_id": "uuid",
-  "filename": "original-name.mp3"
-}
-```
-
-### POST /from-url
-
-Fetch audio from YouTube URL and receive job handle.
-
-Request JSON:
-
-```json
-{
-  "url": "https://youtu.be/<video-id>"
-}
-```
-
-Response:
-
-```json
-{
-  "job_id": "uuid",
-  "filename": "<downloaded-file>.mp3"
-}
-```
-
-### POST /process
-
-Process selected region in mode.
-
-Request JSON:
-
-```json
-{
-  "job_id": "uuid",
-  "startTime": 12.4,
-  "endTime": 26.7,
-  "loopDuration": 2,
-  "mode": "loop"
-}
-```
-
-`mode` values:
-- `loop`: slice -> loop
-- `vocals`: slice -> vocal removal
-- `both`: slice -> vocal removal -> loop
-
-Response:
-- `audio/mpeg` file stream
-
-### Additional Endpoint
-
-- `POST /loop` (standalone loop generation)
-
-## Useful Scripts
-
-Root scripts:
-- `npm run dev`
-- `npm run build`
-- `npm run frontend:dev`
-- `npm run backend:dev`
-- `npm run backend:start`
-
-## Troubleshooting
-
-- If upload fails with multipart errors:
-
-```bash
-pip install python-multipart
-```
-
-- If backend cannot find ffmpeg, install ffmpeg and ensure PATH is set.
-- If ports are busy, change frontend/backend ports and CORS list accordingly.
-- For restricted YouTube videos, configure one of:
-  - `YTDLP_COOKIES_FILE=<absolute-path-to-cookies.txt>`
-  - `YTDLP_COOKIES_FROM_BROWSER=chrome|edge|firefox`
-
-## Processing Notes
-
-- Demucs model is loaded once at backend startup and reused.
-- Looping in the primary pipeline is ffmpeg-based (`-stream_loop`) for faster output generation.
-- Backend write paths create missing parent directories automatically before writing output files.
-
-## Documentation
-
-- Current implementation details: `CURRENT_IMPLEMENTATION.md`
-- Known flaws and inefficiencies: `SYSTEM_FLAWS_AND_INEFFICIENCIES.md`
-- Backend notes: `backend/README.md`
+- First run may be slower because model loading takes time
+- GPU acceleration significantly improves performance (whole process finishes in 30s to a minute)
+- ffmpeg is required for audio processing

@@ -1,45 +1,51 @@
 @echo off
-REM Quick startup script for LOOPY monorepo (Windows)
-
 echo.
 echo ======================================================
-echo 🚀 LOOPY Audio Stem Transformer - Quick Start
+echo LOOPY Audio Stem Transformer - Quick Start
 echo ======================================================
 echo.
 
-echo Installing dependencies...
-echo.
-
-REM Install root dependencies
+echo Installing frontend dependencies...
 call npm install
 
-REM Install backend Python dependencies
 echo.
-echo Installing backend Python dependencies...
+echo Setting up backend...
 cd backend
-call pip install -r requirements.txt
+
+REM Check uv
+where uv >nul 2>nul
+if %errorlevel% neq 0 (
+    echo Installing uv...
+    pip install uv
+)
+
+REM Create venv if not exists
+if exist .venv (
+    echo Virtual environment already exists
+) else (
+    echo Creating virtual environment...
+    uv venv
+)
+
+echo Activating virtual environment...
+call .venv\Scripts\activate
+
+echo Installing Python dependencies with uv...
+uv pip install -r requirements.txt
+
 cd ..
 
 echo.
+echo ⚠️  Make sure ffmpeg is installed and added to PATH
+echo ⚠️  Make sure yt-dlp is installed (pip install yt-dlp)
+echo.
+
 echo ======================================================
 echo ✅ Installation complete!
 echo ======================================================
 echo.
-echo 🎯 To get started:
-echo.
-echo Option 1: Run everything together
+echo Run the app:
 echo   npm run dev
 echo.
-echo Option 2: Run frontend only
-echo   npm run frontend:dev
-echo   (Opens at: http://localhost:5173)
-echo.
-echo Option 3: Run backend only
-echo   npm run backend:dev
-echo   (Runs at: http://localhost:3000)
-echo.
-echo Option 4: Run services separately in different terminals
-echo   Terminal 1: npm run frontend:dev
-echo   Terminal 2: npm run backend:dev
-echo.
+
 pause
